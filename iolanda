@@ -8,7 +8,7 @@ CREATE TABLE pais (
 -- Feito pela Rita -
 
 CREATE TABLE companhia_aerea(
-  codigo CHAR(3), 
+	codigo CHAR(3), 
 	nome VARCHAR(50) NOT NULL,
 	pais_de_origem VARCHAR(30) NOT NULL, 
 	valor_por_milha DECIMAL(7,2),
@@ -18,12 +18,12 @@ CREATE TABLE companhia_aerea(
 		PRIMARY KEY (codigo),
  --
 	CONSTRAINT fk_companhia_aerea
-		FOREIGN KEY (pais_de_origem) REFERENCES pais(cd_pais)
+		FOREIGN KEY (pais_de_origem) REFERENCES pais(codigo)
 );
 
 
 CREATE TABLE trabalhador(
-	id_trabalhador VARCHAR(10),
+	id VARCHAR(10),
 	nome VARCHAR(50) NOT NULL,
     nif NUMERIC(9) NOT NULL,
     data_nascimento DATE NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE trabalhador(
     inicio_atividade YEAR,
  --
     CONSTRAINT pk_trabalhador 
-    	PRIMARY KEY (id_trabalhador),
+    	PRIMARY KEY (id),
 --
     CONSTRAINT un_nif
 		UNIQUE (nif)
@@ -47,7 +47,7 @@ CREATE TABLE duracao(
 		PRIMARY KEY (entrada),
 --
     CONSTRAINT fk_duracao
-		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id_trabalhador)
+		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id)
 --
 #    CONSTRAINT ch_data
 #		CHECK (entrada <= trabalhador(inicio_atividade)) Nao faz sentido e nem corre no workbench
@@ -63,13 +63,13 @@ CREATE TABLE trabalhar(
 		PRIMARY KEY (trabalhador, companhia, duracao),
 --
 	CONSTRAINT fk_trabalhar_companhia 
-		FOREIGN KEY (companhia)	REFERENCES companhia_aerea(cd_companhia),
+		FOREIGN KEY (companhia)	REFERENCES companhia_aerea(codigo),
 --
 	CONSTRAINT fk_trabalhar_trabalhador 
-    	FOREIGN KEY (trabalhador) REFERENCES trabalhador(id_trabalhador),
+    	FOREIGN KEY (trabalhador) REFERENCES trabalhador(id),
 --
-    CONSTRAINT fk_duracao 
-		FOREIGN KEY (duracao) EFERENCES duracao(entrada),
+    CONSTRAINT fk_trabalhar_duracao
+		FOREIGN KEY (duracao) REFERENCES duracao(entrada)
 );
 
 
@@ -79,8 +79,8 @@ CREATE TABLE piloto(
 	CONSTRAINT pk_piloto 
 		PRIMARY KEY (trabalhador),
 --
-	CONSTRAINT fk_piloto 
-		FOREIGN KEY (trabalhador) REFERENCES Trabalhador(id_trabalhador) ON DELETE CASCADE
+	CONSTRAINT fk_piloto_trabalhador 
+		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id) ON DELETE CASCADE
 );
 
 
@@ -91,7 +91,7 @@ CREATE TABLE comissario_de_bordo(
 		PRIMARY KEY (trabalhador),
 --
 	CONSTRAINT fk_comissario
-		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id_trabalhador) ON DELETE CASCADE
+		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id) ON DELETE CASCADE
 );
 
 CREATE TABLE tecnico(
@@ -100,8 +100,8 @@ CREATE TABLE tecnico(
 	CONSTRAINT pk_tecnico
 		PRIMARY KEY (trabalhador),
 --
-	CONSTRAINT fk_tecnico
-		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id_trabalhador) ON DELETE CASCADE
+	CONSTRAINT fk_tecnico_trabalhador
+		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id) ON DELETE CASCADE
 );
 
 
@@ -142,9 +142,10 @@ CREATE TABLE ter(
     CONSTRAINT pk_ter
 		PRIMARY KEY (tecnico, especialidade),
 --
-	CONSTRAINT fk_ter
+	CONSTRAINT fk_ter_tecnico
 		FOREIGN KEY (tecnico) REFERENCES tecnico(trabalhador),
 --
-	CONSTRAINT fk_ter FOREIGN KEY (especialidade)
-        REFERENCES especialidade(nome)
+	CONSTRAINT fk_ter_especialidade
+		FOREIGN KEY (especialidade) REFERENCES especialidade(nome)
 );
+
