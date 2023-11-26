@@ -1,3 +1,31 @@
+CREATE TABLE voo(
+		companhia CHAR(3), -- chave entidade forte (companhia aeria)
+		id NUMERIC(8), -- chave entidade fraca (voo)
+		aeroporto  VARCHAR(8) NOT NULL, 
+		hora_prev_part TIME NOT NULL,
+		hora_prev_cheg TIME NOT NULL,
+		-- 
+		CONSTRAINT pk_voo
+				PRIMARY KEY (companhia,id), -- chave da entidade forte  mais chave  parcial
+		-- 
+		CONSTRAINT fk_voo_companhia 
+			FOREIGN KEY(companhia) REFERENCES companhia_aerea(codigo) ON DELETE CASCADE,
+		-- 
+		CONSTRAINT fk_voo_parte_aeroporto 
+				FOREIGN KEY (aeroporto) REFERENCES aeroporto (codigo),
+		-- 
+		CONSTRAINT fk_voo_chega_aeroporto 
+				FOREIGN KEY (aeroporto) REFERENCES aeroporto (codigo)
+		-- 
+#		CONSTRAINT ck_hora_prev_part -- RIA1-hora prevista de partida está contida no horário de funcionamento do aeroporto de partida
+#				CHECK ((hora_ab_aerop_part <= hora_prev_part <= hora_ab_aerop_part) OR 
+#							(hora_ab_aerop_part = NULL)),
+		-- 
+#		CONSTRAINT ck_hora_prev_cheg -- RIA1-hora prevista de chegada está contida no horário de funcionamento do aeroporto de chegada
+#				CHECK ((hora_ab_aerop_cheg <= hora_prev_cheg <= hora_ab_aerop_cheg) OR 
+#							(hora_ab_aerop_cheg = NULL))
+);
+
 CREATE TABLE voo_programado(
     companhia CHAR(3),    -- chave entidade forte (companhia aeria)
     id NUMERIC(8),       -- chave entidade forte (voo)
@@ -35,11 +63,11 @@ CREATE TABLE aviao(
     companhia CHAR(3) NOT NULL, -- chave companhia
 		-- 
     CONSTRAINT pk_aviao
-				PRIMARY KEY (tail_number),  
+			PRIMARY KEY (tail_number),  
 		-- 
     CONSTRAINT fk_aviao_modelo -- carecterizacao do aviao
-				FOREIGN KEY (modelo) REFERENCES modelo_de_aviao(modelo), 
+			FOREIGN KEY (modelo) REFERENCES modelo_de_aviao(modelo), 
 		-- 
     CONSTRAINT fk_aviao_companhia -- companhia da qual o aviao pertence
-				FOREIGN KEY (companhia) REFERENCES companhia_aerea(codigo)
+			FOREIGN KEY (companhia) REFERENCES companhia_aerea(codigo)
 );
