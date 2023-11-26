@@ -1,0 +1,150 @@
+CREATE TABLE pais (
+    codigo VARCHAR(10),
+    nome VARCHAR(60),
+--
+    CONSTRAINT pk_pais
+    	PRIMARY KEY (codigo)
+);
+-- Feito pela Rita -
+
+CREATE TABLE companhia_aerea(
+  codigo CHAR(3), 
+	nome VARCHAR(50) NOT NULL,
+	pais_de_origem VARCHAR(30) NOT NULL, 
+	valor_por_milha DECIMAL(7,2),
+	bonus_jules_verne DECIMAL(5,2), 
+ --
+	CONSTRAINT pk_companhia_aerea 
+		PRIMARY KEY (codigo),
+ --
+	CONSTRAINT fk_companhia_aerea
+		FOREIGN KEY (pais_de_origem) REFERENCES pais(cd_pais)
+);
+
+
+CREATE TABLE trabalhador(
+	id_trabalhador VARCHAR(10),
+	nome VARCHAR(50) NOT NULL,
+    nif NUMERIC(9) NOT NULL,
+    data_nascimento DATE NOT NULL,
+    genero VARCHAR(20),
+    inicio_atividade YEAR,
+ --
+    CONSTRAINT pk_trabalhador 
+    	PRIMARY KEY (id_trabalhador),
+--
+    CONSTRAINT un_nif
+		UNIQUE (nif)
+);
+
+
+CREATE TABLE duracao(
+	trabalhador VARCHAR(10),
+	entrada YEAR NOT NULL,
+    saida YEAR,
+--
+    CONSTRAINT pk_duracao
+		PRIMARY KEY (entrada),
+--
+    CONSTRAINT fk_duracao
+		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id_trabalhador)
+--
+#    CONSTRAINT ch_data
+#		CHECK (entrada <= trabalhador(inicio_atividade)) Nao faz sentido e nem corre no workbench
+);
+
+
+CREATE TABLE trabalhar(
+	companhia CHAR(3),
+	trabalhador VARCHAR(10),
+	duracao YEAR,
+--
+	CONSTRAINT pk_trabalhar 
+		PRIMARY KEY (trabalhador, companhia, duracao),
+--
+	CONSTRAINT fk_trabalhar_companhia 
+		FOREIGN KEY (companhia)	REFERENCES companhia_aerea(cd_companhia),
+--
+	CONSTRAINT fk_trabalhar_trabalhador 
+    	FOREIGN KEY (trabalhador) REFERENCES trabalhador(id_trabalhador),
+--
+    CONSTRAINT fk_duracao 
+		FOREIGN KEY (duracao) EFERENCES duracao(entrada),
+);
+
+
+CREATE TABLE piloto(
+	trabalhador VARCHAR(10),
+--
+	CONSTRAINT pk_piloto 
+		PRIMARY KEY (trabalhador),
+--
+	CONSTRAINT fk_piloto 
+		FOREIGN KEY (trabalhador) REFERENCES Trabalhador(id_trabalhador) ON DELETE CASCADE
+);
+
+
+CREATE TABLE comissario_de_bordo(
+	trabalhador VARCHAR(10),
+--
+	CONSTRAINT pk_comissario
+		PRIMARY KEY (trabalhador),
+--
+	CONSTRAINT fk_comissario
+		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id_trabalhador) ON DELETE CASCADE
+);
+
+CREATE TABLE tecnico(
+	trabalhador VARCHAR(10),
+--
+	CONSTRAINT pk_tecnico
+		PRIMARY KEY (trabalhador),
+--
+	CONSTRAINT fk_tecnico
+		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id_trabalhador) ON DELETE CASCADE
+);
+
+
+CREATE TABLE padrinho_voo(
+	afilhado VARCHAR(10) NOT NULL,
+	padrinho VARCHAR(10),
+	data_apadrinhamento DATE,
+--
+	CONSTRAINT pk_padrinho_voo 
+		PRIMARY KEY (afilhado,padrinho),
+--
+	CONSTRAINT fk_afilhado 
+		FOREIGN KEY (afilhado) REFERENCES piloto(trabalhador),
+--
+	CONSTRAINT fk_padrinho 
+    	FOREIGN KEY (padrinho) REFERENCES piloto(trabalhador),
+--
+	CONSTRAINT ck_padrinho_afilhado 
+		CHECK (afilhado != padrinho)
+		--
+#		CONSTRAINT ck_padrinho_afilhado
+#				CHECK (afilhado.inicio_atividade <= padrinho.inicio_atividade)
+);
+
+
+CREATE TABLE especialidade(
+	nome VARCHAR(50),
+--
+	CONSTRAINT pk_especialidade
+		PRIMARY KEY (nome)
+);
+
+
+CREATE TABLE ter(
+	tecnico VARCHAR(10),
+    especialidade VARCHAR(50),
+--
+    CONSTRAINT pk_ter
+		PRIMARY KEY (tecnico, especialidade),
+--
+	CONSTRAINT fk_ter
+		FOREIGN KEY (tecnico) REFERENCES tecnico(trabalhador),
+--
+	CONSTRAINT fk_ter FOREIGN KEY (especialidade)
+        REFERENCES especialidade(nome)
+);
