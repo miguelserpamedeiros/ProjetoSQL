@@ -1,0 +1,45 @@
+CREATE TABLE voo_programado(
+    companhia CHAR(3),    -- chave entidade forte (companhia aeria)
+    id NUMERIC(8),       -- chave entidade forte (voo)
+    data_voo DATE,           -- chave entidade fraca (voo_progamado)
+    cancelado BOOLEAN NOT NULL,
+    hora_real_part DATETIME,
+    hora_real_cheg DATETIME,
+	comandante VARCHAR(3) NOT NULL,
+		-- 
+    CONSTRAINT pk_voo_programado
+				PRIMARY KEY (companhia,id,data_voo),  -- chave das entidades fortes  mais chave  parcial
+		-- 
+    CONSTRAINT fk_voo_prog_voo          -- ENTIDADE FRACA
+				FOREIGN KEY (companhia,id) -- remoção de um voo
+				REFERENCES voo(companhia,id)            -- apaga automaticamente os seus 
+				ON DELETE CASCADE,                -- voos programados.
+		-- 
+    CONSTRAINT fk_comandante 
+				FOREIGN KEY (comandante) REFERENCES piloto(trabalhador)
+		-- 
+   # CONSTRAINT ck_hora_real_part -- RIA11-hora real de partida >= hora prevista de partida
+	#			CHECK ((hora_ab_aerop_part <= hora_prev_part <= hora_ab_aerop_part) OR 
+	#						(cancelado = TRUE)), -- RIA6-caso o voo seja cancelado (=TRUE) a hora real de partida é NULL
+		-- 
+   # CONSTRAINT ck_hora_real_cheg -- RIA11-hora real de chegada >= hora prevista de chegada
+	#	CHECK ((hora_ab_aerop_cheg <= hora_prev_cheg <= hora_ab_aerop_cheg) OR 
+	#				(cancelado = TRUE)) -- RIA6-caso o voo seja cancelado (=TRUE) a hora real de chegada é NULL 
+);
+
+
+CREATE TABLE aviao(
+    tail_number CHAR(6),    -- chave primaria
+    ano_fabrico YEAR NOT NULL,
+    modelo CHAR(3) NOT NULL, -- chave do modelo de aviao
+    companhia CHAR(3) NOT NULL, -- chave companhia
+		-- 
+    CONSTRAINT pk_aviao
+				PRIMARY KEY (tail_number),  
+		-- 
+    CONSTRAINT fk_aviao_modelo -- carecterizacao do aviao
+				FOREIGN KEY (modelo) REFERENCES modelo_de_aviao(modelo), 
+		-- 
+    CONSTRAINT fk_aviao_companhia -- companhia da qual o aviao pertence
+				FOREIGN KEY (companhia) REFERENCES companhia_aerea(codigo)
+);
