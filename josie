@@ -1,59 +1,57 @@
-CREATE TABLE classe(
+--
+CREATE INDEX idx_voo_programado					-- permite um mais facil acesso às chaves da entidade
+ON voo_programado (companhia, data_voo, id_voo);  -- fraca voo_programado que depende de outras 2 entidades
+--
+CREATE TABLE classe(     		-- Entidade fraca:
 	aviao CHAR(6),
     nome CHAR(2),
 --
 	CONSTRAINT pk_classe
-		PRIMARY KEY (aviao,nome),
+		PRIMARY KEY (aviao,nome),   -- Chave da entidade forte + chave parcial
 --
 	CONSTRAINT fk_classe_aviao
-		FOREIGN KEY (aviao) REFERENCES aviao (tail_number) 
-        ON DELETE CASCADE,
+		FOREIGN KEY (aviao) 
+        REFERENCES aviao (tail_number)  -- Remoção de um avião
+        ON DELETE CASCADE,				-- apaga automaticamente as suas classes.
 --
 	CONSTRAINT ck_classe_nome
 		CHECK (nome IN ('fc','bu','ec'))
 );
 
-
-CREATE TABLE lugar (
+CREATE TABLE lugar (			-- Entidade fraca:
 	aviao CHAR(6), 
     classe CHAR(2),
 	fila CHAR(1),
 	numero SMALLINT,
 --
 	CONSTRAINT pk_lugar_pk
-		PRIMARY KEY (aviao,classe,fila,numero),
+		PRIMARY KEY (aviao,classe,fila,numero),		-- Chave da entidade forte + chaves parciais
 --
 	CONSTRAINT fk_lugar_classe
-    FOREIGN KEY (aviao,classe) REFERENCES classe(aviao,nome) ON DELETE CASCADE
+		FOREIGN KEY (aviao,classe) 			
+		REFERENCES classe(aviao,nome) 		-- Remoção de uma classe
+        ON DELETE CASCADE					-- apaga automaticamente os seus lugares
 );
-
---
-ALTER TABLE voo_programado
-DROP INDEX idx_voo_prog;
-CREATE INDEX idx_voo_prog
-ON voo_programado ( companhia,data_voo,id );  
---
-
-CREATE TABLE preço (
-	aviao_classe CHAR(6),
-	nome_classe CHAR(2),
+CREATE TABLE preco (
+	aviao_classe CHAR(6),    -- necessário todas as chaves das entidades fracas 
+	nome_classe CHAR(2),     -- classe e voo_programado
     data_voo_programado DATE,
     id_voo_programado NUMERIC(8),
     companhia_voo_programado CHAR(3),
-    valor NUMERIC(6,2) NOT NULL,	 #valor > 0 #valor vai ate quanto?
+    valor NUMERIC(6,2) NOT NULL,
 --
-	CONSTRAINT pk_preço
+	CONSTRAINT pk_preco
 		PRIMARY KEY (aviao_classe,nome_classe, data_voo_programado,
         id_voo_programado, companhia_voo_programado),
 --
-	CONSTRAINT fk_preço_classe
+	CONSTRAINT fk_preco_classe
 		FOREIGN KEY (aviao_classe,nome_classe) REFERENCES classe (aviao,nome),
 --
-	CONSTRAINT preço_voo_programado
-		FOREIGN KEY (companhia_voo_programado,data_voo_programado,id_voo_programado) REFERENCES voo_programado (companhia,data_voo,id),
+	CONSTRAINT preco_voo_programado
+		FOREIGN KEY (companhia_voo_programado,data_voo_programado,id_voo_programado) REFERENCES voo_programado (companhia,data_voo,id_voo),
 --	
 	CONSTRAINT 
-		CHECK (valor > 0)
+		CHECK (valor > 0.0)
 );
 CREATE TABLE passageiro (
 	nic NUMERIC(9) , 
@@ -66,13 +64,13 @@ CREATE TABLE passageiro (
 		PRIMARY KEY (nic),
 --
 	CONSTRAINT un_passageiro_telemovel
-		UNIQUE (telemovel),
+		UNIQUE (telemovel),          -- chave candidata : N0T NULL + UNIQUE
 --
 	CONSTRAINT un_passageiro_email
-		UNIQUE (email)
+		UNIQUE (email)        -- chave candidata: NOT NULL + UNIQUE
 );
 
-CREATE TABLE frequent_flyer ( # cada passageiro pode se inscrever no max em 5 companhias aereas
+CREATE TABLE frequent_flyer (
 	companhia CHAR(3),
 	passageiro NUMERIC(9),
     tipo_de_cliente CHAR(20) NOT NULL, 
@@ -81,38 +79,46 @@ CREATE TABLE frequent_flyer ( # cada passageiro pode se inscrever no max em 5 co
 		PRIMARY KEY (companhia,passageiro),
 --
 	CONSTRAINT fk_frequent_flyer_passageiro
-		FOREIGN KEY (passageiro) REFERENCES passageiro,
+		FOREIGN KEY (passageiro) REFERENCES passageiro(nic),
 --
 	CONSTRAINT fk_frequent_flyer_companhia
-    FOREIGN KEY (companhia) REFERENCES companhia,
-    
+    FOREIGN KEY (companhia) REFERENCES companhia_aerea(codigo),    
 --
 	CONSTRAINT ck_frequent_flyer_tipo_de_cliente
-		CHECK (tipo_de_cliente IN ('classic','special'))
---
-# falta constrain das 5 relações
+		CHECK (tipo_de_cliente IN ('classic','special')) 
 );
+
 CREATE TABLE bilhete (
-    data_voo_programado DATE,
-    id_voo_programado NUMERIC(8),
+    data_voo_programado DATE,   		-- chaves das entidades fracas
+    id_voo_programado NUMERIC(8),		-- lugar e voo_programado
     companhia_voo_programado CHAR(3),
     classe_lugar CHAR(2),
     aviao_lugar CHAR(6),
     fila_lugar CHAR(1),
     numero_lugar SMALLINT,
-    passageiro NUMERIC(9) NOT NULL,
+    passageiro NUMERIC(9),
 --
 	CONSTRAINT pk_bilhete
-    PRIMARY KEY(id_voo_programado, companhia_voo_programado,
-    data_voo_programado, fila_lugar, numero_lugar),
+    PRIMARY KEY(id_voo_programado, companhia_voo_programado,                                              #quais sao as primary keys? sao todas?
+    data_voo_programado,classe_lugar, aviao_lugar, fila_lugar, numero_lugar),
 --
 	CONSTRAINT fk_bilhete_lugar
-    FOREIGN KEY (aviao_lugar,classe_lugar,fila_lugar,numero_lugar) REFERENCES lugar(aviao,classe,fila,numero),
+    FOREIGN KEY (aviao_lugar,classe_lugar,fila_lugar,numero_lugar) 
+    REFERENCES lugar(aviao,classe,fila,numero),
 --
 	CONSTRAINT fk_bilhete_voo_programado
-		FOREIGN KEY (companhia_voo_programado,data_voo_programado,id_voo_programado) REFERENCES voo_programado (companhia,data_voo,id),
-
+		FOREIGN KEY (companhia_voo_programado,data_voo_programado,id_voo_programado)
+        REFERENCES voo_programado (companhia,data_voo,id_voo),
 --
-	CONSTRAINT fk_bilhete_passageiro
-		FOREIGN KEY(passageiro) REFERENCES passageiro(nic)
+	CONSTRAINT fk_bilhete_passageiro		-- restrição de chave,
+		FOREIGN KEY(passageiro) 			-- relação 1:n => bilhete só será
+        REFERENCES passageiro(nic)			-- comprado por 1 passageiro.
 );
+
+-- RIAs:
+-- RIAs 8 e 9 do EA não cobertas pelo SQL.
+-- RIA 8: Cada passageiro só se pode inscrever no maximo em 5 companhias aéreas
+-- RIA 9: tipo_de_cliente = special sse o seu número de milhas >= 70 000.
+-- 
+
+
