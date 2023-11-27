@@ -1,151 +1,166 @@
-CREATE TABLE pais (
-    codigo VARCHAR(10),
+-- Feito pela Rita -
+CREATE TABLE pais(
+    codigo VARCHAR(5),
     nome VARCHAR(60),
 --
     CONSTRAINT pk_pais
-    	PRIMARY KEY (codigo)
+		PRIMARY KEY(codigo),
+--
+	CONSTRAINT un_pais_nome
+		UNIQUE(nome)
 );
--- Feito pela Rita -
 
 CREATE TABLE companhia_aerea(
-	codigo CHAR(3), 
+	codigo CHAR(3), -- codigo constituido por 3 letras
 	nome VARCHAR(50) NOT NULL,
-	pais_de_origem VARCHAR(30) NOT NULL, 
+	pais VARCHAR(30) NOT NULL, 
 	valor_por_milha DECIMAL(7,2),
 	bonus_jules_verne DECIMAL(5,2), 
- --
+--
 	CONSTRAINT pk_companhia_aerea 
 		PRIMARY KEY (codigo),
- --
-	CONSTRAINT fk_companhia_aerea
-		FOREIGN KEY (pais_de_origem) REFERENCES pais(codigo)
+--
+	CONSTRAINT fk_companhia_pais
+		FOREIGN KEY (pais) 
+        REFERENCES pais(codigo),
+--
+    CONSTRAINT un_companhia_nome
+		UNIQUE(nome) -- chave candidata: NOT NULL e UNIQUE
 );
 
 
 CREATE TABLE trabalhador(
 	id VARCHAR(10),
+    inicio_atividade YEAR, -- ano que o trabalhador deu inicio da sua atividade
 	nome VARCHAR(50) NOT NULL,
-    nif NUMERIC(9) NOT NULL,
+    nif NUMERIC(9) NOT NULL, 
     data_nascimento DATE NOT NULL,
     genero VARCHAR(20),
-    inicio_atividade YEAR,
- --
     CONSTRAINT pk_trabalhador 
-    	PRIMARY KEY (id),
+		PRIMARY KEY (id, inicio_atividade),
+--
+	CONSTRAINT un_id
+		UNIQUE (id), -- tornar o id unico na chave composta
 --
     CONSTRAINT un_nif
-		UNIQUE (nif)
-);
-
-
-CREATE TABLE duracao(
-	trabalhador VARCHAR(10),
-	entrada YEAR NOT NULL,
-    saida YEAR,
---
-    CONSTRAINT pk_duracao
-		PRIMARY KEY (entrada),
---
-    CONSTRAINT fk_duracao
-		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id)
---
-#    CONSTRAINT ch_data
-#		CHECK (entrada <= trabalhador(inicio_atividade)) Nao faz sentido e nem corre no workbench
+		UNIQUE (nif) -- chave candidata: NOT NULL e UNIQUE
 );
 
 
 CREATE TABLE trabalhar(
-	companhia CHAR(3),
-	trabalhador VARCHAR(10),
-	duracao YEAR,
+	companhia CHAR(3), -- codigo de 3 letras da companhia aerea
+	trabalhador VARCHAR(10),-- id do trabalhador
+	trabalhador_inicio_atividade YEAR, 
+	ano_entrada YEAR,
+	ano_saida YEAR, -- pode ser NOT NULL se o trabalhador ainda nao fechou um ciclo na companhia
 --
 	CONSTRAINT pk_trabalhar 
-		PRIMARY KEY (trabalhador, companhia, duracao),
+		PRIMARY KEY (companhia, trabalhador, ano_entrada), -- chave primaria composta
 --
 	CONSTRAINT fk_trabalhar_companhia 
-		FOREIGN KEY (companhia)	REFERENCES companhia_aerea(codigo),
+		FOREIGN KEY (companhia) 
+		REFERENCES companhia_aerea(codigo),
 --
-	CONSTRAINT fk_trabalhar_trabalhador 
-    	FOREIGN KEY (trabalhador) REFERENCES trabalhador(id),
+	CONSTRAINT fk_trabalhar_trabalhador_inicio_atividade
+		FOREIGN KEY (trabalhador, trabalhador_inicio_atividade) 
+		REFERENCES trabalhador(id,inicio_atividade),
 --
-    CONSTRAINT fk_trabalhar_duracao
-		FOREIGN KEY (duracao) REFERENCES duracao(entrada)
+	CONSTRAINT ck_datas
+		CHECK (ano_entrada >= trabalhador_inicio_atividade)
 );
 
 
+-- Desenvolvimento do IS-A
 CREATE TABLE piloto(
-	trabalhador VARCHAR(10),
---
-	CONSTRAINT pk_piloto 
-		PRIMARY KEY (trabalhador),
---
-	CONSTRAINT fk_piloto_trabalhador 
-		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id) ON DELETE CASCADE
+		trabalhador VARCHAR(10),
+		inicio_atividade YEAR, -- id do trabalhador que e piloto
+		--
+		CONSTRAINT pk_piloto 
+				PRIMARY KEY (trabalhador, inicio_atividade),
+		--
+		CONSTRAINT fk_piloto_inicio_atividade
+				FOREIGN KEY (trabalhador, inicio_atividade)
+        REFERENCES trabalhador(id, inicio_atividade)
+        ON DELETE CASCADE
 );
 
 
 CREATE TABLE comissario_de_bordo(
-	trabalhador VARCHAR(10),
---
-	CONSTRAINT pk_comissario
-		PRIMARY KEY (trabalhador),
---
-	CONSTRAINT fk_comissario
-		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id) ON DELETE CASCADE
+		trabalhador VARCHAR(10), -- id do trabalhador que e comissario de bordo
+		inicio_atividade YEAR,
+		--
+		CONSTRAINT pk_comissario
+				PRIMARY KEY (trabalhador,inicio_atividade),
+		--
+		CONSTRAINT fk_comissario_inicio_atividade
+				FOREIGN KEY (trabalhador, inicio_atividade)
+        REFERENCES trabalhador(id, inicio_atividade)
+        ON DELETE CASCADE
 );
 
+
 CREATE TABLE tecnico(
-	trabalhador VARCHAR(10),
---
-	CONSTRAINT pk_tecnico
-		PRIMARY KEY (trabalhador),
---
-	CONSTRAINT fk_tecnico_trabalhador
-		FOREIGN KEY (trabalhador) REFERENCES trabalhador(id) ON DELETE CASCADE
+		trabalhador VARCHAR(10), -- id do trabalhador que e tecnico
+		inicio_atividade YEAR,
+		--
+		CONSTRAINT pk_tecnico
+				PRIMARY KEY (trabalhador,inicio_atividade),
+		--
+		CONSTRAINT fk_tecnico_inicio_atividade
+				FOREIGN KEY (trabalhador, inicio_atividade)
+        REFERENCES trabalhador(id, inicio_atividade)
+        ON DELETE CASCADE
 );
 
 
 CREATE TABLE padrinho_voo(
-	afilhado VARCHAR(10) NOT NULL,
-	padrinho VARCHAR(10),
-	data_apadrinhamento DATE,
---
-	CONSTRAINT pk_padrinho_voo 
-		PRIMARY KEY (afilhado,padrinho),
---
-	CONSTRAINT fk_afilhado 
-		FOREIGN KEY (afilhado) REFERENCES piloto(trabalhador),
---
-	CONSTRAINT fk_padrinho 
-    	FOREIGN KEY (padrinho) REFERENCES piloto(trabalhador),
---
-	CONSTRAINT ck_padrinho_afilhado 
-		CHECK (afilhado != padrinho)
+		afilhado VARCHAR(10) NOT NULL, -- um piloto so pode ter um padrinho
+		afilhado_inicio_atividade YEAR,
+		padrinho VARCHAR(10),
+		padrinho_inicio_atividade YEAR,
+		data_apadrinhamento DATE, -- data que um piloto ganhou um padrinho de voo
 		--
-#		CONSTRAINT ck_padrinho_afilhado
-#				CHECK (afilhado.inicio_atividade <= padrinho.inicio_atividade)
+		CONSTRAINT pk_padrinho_voo 
+				PRIMARY KEY (afilhado, afilhado_inicio_atividade, padrinho, padrinho_inicio_atividade),
+		--
+		CONSTRAINT fk_afilhado
+				FOREIGN KEY (afilhado, afilhado_inicio_atividade) 
+				REFERENCES piloto(trabalhador, inicio_atividade),
+		--
+		CONSTRAINT fk_padrinho 
+				FOREIGN KEY (padrinho, padrinho_inicio_atividade) 
+				REFERENCES piloto(trabalhador, inicio_atividade),
+		--
+		CONSTRAINT ck_padrinho_afilhado
+				CHECK (afilhado != padrinho), -- RIA: um piloto nao pode ser padrinho de si mesmo
+		--
+		CONSTRAINT ck_datas_padrinho_afilhado -- RIA: o inicio de atividade do padrinho deve ser inferior ao do afilhado
+				CHECK (padrinho_inicio_atividade < afilhado_inicio_atividade) 
 );
 
 
 CREATE TABLE especialidade(
-	nome VARCHAR(50),
---
-	CONSTRAINT pk_especialidade
-		PRIMARY KEY (nome)
+		nome VARCHAR(50),
+    --
+		CONSTRAINT pk_especialidade
+				PRIMARY KEY (nome)
 );
 
 
 CREATE TABLE ter(
-	tecnico VARCHAR(10),
+		tecnico VARCHAR(10),
+		tecnico_inicio_atividade YEAR,
     especialidade VARCHAR(50),
---
+    --
     CONSTRAINT pk_ter
-		PRIMARY KEY (tecnico, especialidade),
---
-	CONSTRAINT fk_ter_tecnico
-		FOREIGN KEY (tecnico) REFERENCES tecnico(trabalhador),
---
-	CONSTRAINT fk_ter_especialidade
-		FOREIGN KEY (especialidade) REFERENCES especialidade(nome)
+				PRIMARY KEY (tecnico, tecnico_inicio_atividade, especialidade),
+		--
+		CONSTRAINT fk_ter_tecnico
+				FOREIGN KEY (tecnico, tecnico_inicio_atividade)
+				REFERENCES tecnico(trabalhador, inicio_atividade),
+		--
+		CONSTRAINT fk_ter_especialidade
+				FOREIGN KEY (especialidade)
+        REFERENCES especialidade(nome)
 );
 
