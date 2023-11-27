@@ -1,92 +1,125 @@
 CREATE TABLE cidade (
-    codigo VARCHAR(5) NOT NULL,
+    codigo VARCHAR(5),
     nome VARCHAR(60) NOT NULL,
-    pais VARCHAR(5) NOT NULL, -- cidade é entidade fraca de país
---
-	CONSTRAINT pk_cidade
-		PRIMARY KEY (codigo,pais),
---
-	CONSTRAINT fk_cidade_pais
-		FOREIGN KEY (pais) REFERENCES pais(codigo) ON DELETE CASCADE
+    codigo_pais VARCHAR(5) NOT NULL, -- cidade é entidade fraca de país
+		--
+		CONSTRAINT pk_cidade
+		    PRIMARY KEY (codigo_pais, codigo),
+		--
+		CONSTRAINT fk_codigo_pais
+		    FOREIGN KEY (codigo_pais) 
+				REFERENCES pais(codigo) ON DELETE CASCADE
 );
 
+
 CREATE TABLE modelo_de_aviao (
-    modelo CHAR(3) NOT NULL,-- tem de ter 3 letras
+    modelo CHAR(3),-- tem de ter 3 letras
     marca VARCHAR(30) NOT NULL,
-    maximo_lugares SMALLINT NOT NULL, -- máximo de lugares vai determinar o nº de bilhetes que podem ser vendidos para o voo
-    comissarios_bordo SMALLINT NOT NULL, -- determina o nº de comissários na tripulação
-    horas_minimas_comandante SMALLINT NOT NULL, -- horas mínimas exigidas para o piloto ser comandante
---
-	CONSTRAINT pk_modelo_de_aviao
-		PRIMARY KEY (modelo)
+    maximo_lugares SMALLINT NOT NULL, -- máximo de lugares vai determinar o nº de bilhetes que podem ser vendidos para o voo em questão
+    comissarios_de_bordo SMALLINT NOT NULL, -- determina o nº de comissários na tripulação
+    horas_minimas_para_comandar SMALLINT NOT NULL, -- horas mínimas exigidas para o piloto ser comandante
+		--
+		CONSTRAINT pk_modelo_de_aviao
+				PRIMARY KEY (modelo),
+		--
+		CONSTRAINT ck_modelo_de_aviao_maximo_lugares
+				CHECK (maximo_lugares > 0),
+		--
+		CONSTRAINT ck_comissarios_de_bordo
+				CHECK (comissarios_de_bordo > 0),
+		--
+		CONSTRAINT ck_horas_minimas_para_comandar
+				CHECK (horas_minimas_para_comandar > 0)
 );
 
 
 CREATE TABLE aeroporto(
     codigo VARCHAR(10) NOT NULL, -- código alfanumerico
     nome VARCHAR(200) NOT NULL,
-	coordenadas POINT NOT NULL, -- POINT(latitude, longitude)
-	tempo_de_transfer TIME NOT NULL, 
-	horario_abertura TIME,  -- pode ter ou não horário de abertura e fecho
-	horario_fecho TIME,
-	pais VARCHAR (5) NOT NULL,
-	cidade VARCHAR(5) NOT NULL,
---
-	CONSTRAINT pk_aeroporto
-		PRIMARY KEY (codigo),
---
-	CONSTRAINT un_aerporto_nome
-		UNIQUE (nome),
---
-#	CONSTRAINT un_aerporto_coordenadas
-#		UNIQUE(coordenadas), # da erro pq diz que special indexes n podem ser principais prolly pq do point
---
-	CONSTRAINT fk_aeroporto_cidade
-		FOREIGN KEY (pais, cidade) REFERENCES cidade(pais, codigo) ON DELETE CASCADE
+		latitude DECIMAL(10,6) NOT NULL, 
+		longitude DECIMAL (10,6) NOT NULL,
+		tempo_de_transfer TIME NOT NULL, 
+		horario_de_abertura TIME,  -- pode ter ou não horário de abertura e fecho, por isso não impomos NOT NULL
+		horario_de_fecho TIME,
+		pais VARCHAR(5) NOT NULL,
+		cidade VARCHAR(5) NOT NULL,
+		
+		--
+		CONSTRAINT pk_aeroporto
+		    PRIMARY KEY (codigo),
+		--
+		CONSTRAINT fk_aeroporto_pais_cidade
+			FOREIGN KEY (pais,cidade) 
+			REFERENCES cidade(codigo_pais, codigo) 
+			ON DELETE CASCADE,
+		--
+		CONSTRAINT un_aeroporto_nome
+			UNIQUE (nome),
+		--
+		CONSTRAINT un_aeroporto_coordenadas
+			UNIQUE(latitude, longitude)
 );
 
 
-CREATE TABLE alberga(  -- para a associação que modelos são permitidos no aero
+CREATE TABLE modelos_que_podem_albergar(  
 		aeroporto VARCHAR(10) NOT NULL,
-		modelo CHAR(3) NOT NULL,
---
-	CONSTRAINT pk_alberga
-		PRIMARY KEY (modelo,aeroporto), 
---
-	CONSTRAINT fk_alberga_aerporto
-		FOREIGN KEY (aeroporto) REFERENCES aeroporto(codigo) ON DELETE CASCADE,
---
-	CONSTRAINT fk_alberga_modelo
-		FOREIGN KEY (modelo) REFERENCES modelo_de_aviao(modelo) ON DELETE CASCADE
+		modelo_de_aviao CHAR(3) NOT NULL,
+		--
+		CONSTRAINT pk_modelos_que_podem_albergar
+			PRIMARY KEY (aeroporto,modelo_de_aviao), 
+		--
+		CONSTRAINT fk_albergar_aeroporto
+			FOREIGN KEY (aeroporto) 
+			REFERENCES aeroporto(codigo) 
+			ON DELETE CASCADE,
+		--
+		CONSTRAINT fk_albergar_modelo
+			FOREIGN KEY (modelo_de_aviao) 
+			REFERENCES modelo_de_aviao(modelo) 
+			ON DELETE CASCADE
 );
 
 
-CREATE TABLE ligacao(
+CREATE TABLE ligacao_entre_aeroportos(
 		aeroporto1_codigo VARCHAR(10) NOT NULL,
 		aeroporto2_codigo VARCHAR(10) NOT NULL,
 		milhas INT NOT NULL,
---
-	CONSTRAINT pk_ligacao
-		PRIMARY KEY (aeroporto1_codigo, aeroporto2_codigo),
---
-	CONSTRAINT fk_ligacao_aeroporto1
-		FOREIGN KEY (aeroporto1_codigo) REFERENCES aeroporto(codigo) ON DELETE CASCADE,
---
-	CONSTRAINT fk_ligacao_aeroporto2
-		FOREIGN KEY (aeroporto2_codigo) REFERENCES aeroporto(codigo) ON DELETE CASCADE
+		--
+		CONSTRAINT pk_ligacao_entre_aeroportos -- esta restrição faz com que não seja possível ligar um aeroporto a si mesmo
+			PRIMARY KEY (aeroporto1_codigo, aeroporto2_codigo),
+		--
+		CONSTRAINT fk_ligacao_aeroporto1
+			FOREIGN KEY (aeroporto1_codigo) 
+			REFERENCES aeroporto(codigo) 
+			ON DELETE CASCADE,
+		--
+		CONSTRAINT fk_ligacao_aeroporto2
+			FOREIGN KEY (aeroporto2_codigo) 
+			REFERENCES aeroporto(codigo) 
+			ON DELETE CASCADE,
+		--
+		CONSTRAINT ck_ligacao_milhas
+			CHECK (milhas > 0)
 );
 
-CREATE TABLE habilitado(
-		piloto VARCHAR(10),
+
+
+
+CREATE TABLE habilitar(
+		id_piloto VARCHAR(10) NOT NULL,
+		modelo_habilitado CHAR(3) NOT NULL,
 		data_de_habilitacao DATE NOT NULL,
-        modelo CHAR(3),
---
-	CONSTRAINT pk_habilitado
-		PRIMARY KEY (piloto,modelo), 
---
-	CONSTRAINT fk_habilitado_piloto
-		FOREIGN KEY (piloto) REFERENCES piloto(trabalhador) ON DELETE CASCADE, #piloto aqui n trabalhador
---
-	CONSTRAINT fk_habilitado_modelo
-		FOREIGN KEY(modelo) REFERENCES modelo_de_aviao(modelo) ON DELETE CASCADE
+		--
+		CONSTRAINT pk_habilitar
+			PRIMARY KEY (id_piloto,modelo_habilitado),
+		--
+		CONSTRAINT fk_habilitar_piloto
+			FOREIGN KEY (id_piloto) 
+			REFERENCES trabalhador(id) 
+			ON DELETE CASCADE,
+		--
+		CONSTRAINT fk_habilitar_modelo
+			FOREIGN KEY(modelo_habilitado) 
+			REFERENCES modelo_de_aviao(modelo) 
+			ON DELETE CASCADE
 );
