@@ -1,73 +1,147 @@
-CREATE TABLE voo(
-		companhia CHAR(3), -- chave entidade forte (companhia aeria)
-		id NUMERIC(8), -- chave entidade fraca (voo)
-		aeroporto  VARCHAR(8) NOT NULL, 
-		hora_prev_part TIME NOT NULL,
-		hora_prev_cheg TIME NOT NULL,
+CREATE TABLE voo (
+    companhia CHAR(3),        -- chave entidade forte (companhia aeria)
+    id_voo NUMERIC(8),        -- chave entidade fraca (voo)
+    aeroporto_part  VARCHAR(8) NOT NULL, 
+    aeroporto_cheg  VARCHAR(8) NOT NULL, 
+    hora_prev_part TIME NOT NULL,
+    hora_prev_cheg TIME NOT NULL,
 		-- 
-		CONSTRAINT pk_voo
-				PRIMARY KEY (companhia,id), -- chave da entidade forte  mais chave  parcial
+    CONSTRAINT pk_voo
+	      PRIMARY KEY (companhia,id_voo),  -- chave da entidade forte  mais chave  parcial
 		-- 
-		CONSTRAINT fk_voo_companhia 
-			FOREIGN KEY(companhia) REFERENCES companhia_aerea(codigo) ON DELETE CASCADE,
+    CONSTRAINT fk_voo_companhia        -- ENTIDADE FRACA
+	      FOREIGN KEY (companhia)        -- remoção de uma companhia
+	      REFERENCES companhia_aerea(codigo)
+          ON DELETE CASCADE ,   -- apaga automaticamente os seus voos.
+	      
 		-- 
-		CONSTRAINT fk_voo_parte_aeroporto 
-				FOREIGN KEY (aeroporto) REFERENCES aeroporto (codigo),
+    CONSTRAINT fk_voo_parte_aeroporto -- aeroporto do qual o voo parte
+	      FOREIGN KEY (aeroporto_part) 
+				REFERENCES aeroporto (codigo),
 		-- 
-		CONSTRAINT fk_voo_chega_aeroporto 
-				FOREIGN KEY (aeroporto) REFERENCES aeroporto (codigo)
-		-- 
-#		CONSTRAINT ck_hora_prev_part -- RIA1-hora prevista de partida está contida no horário de funcionamento do aeroporto de partida
-#				CHECK ((hora_ab_aerop_part <= hora_prev_part <= hora_ab_aerop_part) OR 
-#							(hora_ab_aerop_part = NULL)),
-		-- 
-#		CONSTRAINT ck_hora_prev_cheg -- RIA1-hora prevista de chegada está contida no horário de funcionamento do aeroporto de chegada
-#				CHECK ((hora_ab_aerop_cheg <= hora_prev_cheg <= hora_ab_aerop_cheg) OR 
-#							(hora_ab_aerop_cheg = NULL))
+    CONSTRAINT fk_voo_chega_aeroporto -- aeroporto no qual o voo chega
+	      FOREIGN KEY (aeroporto_cheg) 
+				REFERENCES aeroporto (codigo)
 );
 
-CREATE TABLE voo_programado(
-    companhia CHAR(3),    -- chave entidade forte (companhia aeria)
-    id NUMERIC(8),       -- chave entidade forte (voo)
-    data_voo DATE,           -- chave entidade fraca (voo_progamado)
+
+CREATE TABLE voo_programado (
+    companhia CHAR(3),     -- chave entidade forte (companhia aerea)
+    id_voo NUMERIC(8),     -- chave entidade forte (voo)
+    data_voo DATE,         -- chave entidade fraca (voo_programado)
     cancelado BOOLEAN NOT NULL,
-    hora_real_part DATETIME,
-    hora_real_cheg DATETIME,
-	comandante VARCHAR(3) NOT NULL,
+    hora_real_part DATETIME,  -- caso o voo ainda nao tenha sido cancelado as horas reais 
+    hora_real_cheg DATETIME,  -- são NULL até obtermos esta nova informacao
+    comandante VARCHAR(10) NOT NULL,
+    comandante_inicio_atividade YEAR,
 		-- 
     CONSTRAINT pk_voo_programado
-				PRIMARY KEY (companhia,id,data_voo),  -- chave das entidades fortes  mais chave  parcial
+	      PRIMARY KEY (companhia,id_voo,data_voo),  -- chave das entidades fortes  mais chave  parcial
 		-- 
     CONSTRAINT fk_voo_prog_voo          -- ENTIDADE FRACA
-				FOREIGN KEY (companhia,id) -- remoção de um voo
-				REFERENCES voo(companhia,id)            -- apaga automaticamente os seus 
-				ON DELETE CASCADE,                -- voos programados.
+	      FOREIGN KEY (companhia,id_voo)  -- remoção de um voo
+	      REFERENCES voo(companhia,id_voo)          -- apaga automaticamente os seus 
+	      ON DELETE CASCADE,              -- voos programados.
 		-- 
-    CONSTRAINT fk_comandante 
-				FOREIGN KEY (comandante) REFERENCES piloto(trabalhador)
+    CONSTRAINT fk_comandante  -- comandante do voo é unico
+	      FOREIGN KEY (comandante,comandante_inicio_atividade) 
+				REFERENCES piloto(trabalhador,inicio_atividade)
+ );
+
+
+CREATE TABLE pertence (
+    companhia CHAR(3),             -- chave entidade voo_programado
+		id_voo NUMERIC(8),     
+    data_voo DATE,                 --           
+    especialidade VARCHAR(50),     -- chave associacao ter
+    tecnico VARCHAR(10),
+	  tecnico_inicio_atividade YEAR, -- 
 		-- 
-   # CONSTRAINT ck_hora_real_part -- RIA11-hora real de partida >= hora prevista de partida
-	#			CHECK ((hora_ab_aerop_part <= hora_prev_part <= hora_ab_aerop_part) OR 
-	#						(cancelado = TRUE)), -- RIA6-caso o voo seja cancelado (=TRUE) a hora real de partida é NULL
+    CONSTRAINT pk_pertence  -- relacao m:n => tabela com chaves das entidades (voo_programado e ter)
+	      PRIMARY KEY (companhia,id_voo,data_voo,tecnico,tecnico_inicio_atividade,especialidade),  
 		-- 
-   # CONSTRAINT ck_hora_real_cheg -- RIA11-hora real de chegada >= hora prevista de chegada
-	#	CHECK ((hora_ab_aerop_cheg <= hora_prev_cheg <= hora_ab_aerop_cheg) OR 
-	#				(cancelado = TRUE)) -- RIA6-caso o voo seja cancelado (=TRUE) a hora real de chegada é NULL 
+    CONSTRAINT fk_pertence_voo_programado
+	      FOREIGN KEY (companhia,id_voo,data_voo) 
+				REFERENCES voo_programado(companhia,id_voo,data_voo), 
+		-- 
+    CONSTRAINT fk_pertence_ter      
+	      FOREIGN KEY (tecnico, tecnico_inicio_atividade, especialidade) 
+				REFERENCES ter(tecnico, tecnico_inicio_atividade, especialidade)
 );
 
 
-CREATE TABLE aviao(
-    tail_number CHAR(6),    -- chave primaria
+CREATE TABLE auxilia (
+    companhia CHAR(3),       -- chave entidade voo_programado
+    id_voo NUMERIC(8),     
+    data_voo DATE,                            
+    comissario VARCHAR(10),  -- chave associacao comissario_de_bordo
+    comissario_inicio_atividade YEAR,
+		-- 
+    CONSTRAINT pk_auxilia  -- relacao m:n => tabela com chaves das entidades (voo_programado e comissario_de_bordo)
+	      PRIMARY KEY (companhia,id_voo,data_voo,comissario,comissario_inicio_atividade),  
+		-- 
+    CONSTRAINT fk_auxilia_voo_programado
+	      FOREIGN KEY (companhia,id_voo,data_voo) 
+				REFERENCES voo_programado(companhia,id_voo,data_voo), 
+		-- 
+    CONSTRAINT fk_auxilia_comissario      
+	      FOREIGN KEY (comissario,comissario_inicio_atividade) 
+				REFERENCES comissario_de_bordo(trabalhador,inicio_atividade)
+);
+
+
+CREATE TABLE co_piloto (
+    companhia CHAR(3),   -- chave entidade voo_programado
+    id_voo NUMERIC(8),     
+    data_voo DATE,       --                   
+    piloto VARCHAR(10),  -- chave associacao piloto
+    piloto_inicio_atividade YEAR,
+		-- 
+    CONSTRAINT pk_co_piloto  -- relacao m:n => tabela com chaves das entidades (voo_programado e piloto)
+	      PRIMARY KEY (companhia,id_voo,data_voo,piloto,piloto_inicio_atividade),  
+		-- 
+    CONSTRAINT fk_co_piloto_voo_programado
+	      FOREIGN KEY (companhia,id_voo,data_voo) 
+				REFERENCES voo_programado(companhia,id_voo,data_voo), 
+		-- 
+    CONSTRAINT fk_co_piloto_piloto      
+	      FOREIGN KEY (piloto,piloto_inicio_atividade) 
+				REFERENCES piloto(trabalhador,inicio_atividade)
+);
+
+
+CREATE TABLE aviao (
+    tail_number CHAR(6),         -- chave primaria
     ano_fabrico YEAR NOT NULL,
-    modelo CHAR(3) NOT NULL, -- chave do modelo de aviao
-    companhia CHAR(3) NOT NULL, -- chave companhia
+    modelo CHAR(3) NOT NULL,     -- chave do modelo de aviao (um só modelo)
+    companhia CHAR(3) NOT NULL,  -- chave companhia (pertence a uma só companhia)
 		-- 
     CONSTRAINT pk_aviao
-			PRIMARY KEY (tail_number),  
+	      PRIMARY KEY (tail_number),  
 		-- 
-    CONSTRAINT fk_aviao_modelo -- carecterizacao do aviao
-			FOREIGN KEY (modelo) REFERENCES modelo_de_aviao(modelo), 
+    CONSTRAINT fk_aviao_modelo   -- carecterizacao do aviao
+	      FOREIGN KEY (modelo) 
+				REFERENCES modelo_de_aviao(modelo), 
 		-- 
     CONSTRAINT fk_aviao_companhia -- companhia da qual o aviao pertence
-			FOREIGN KEY (companhia) REFERENCES companhia_aerea(codigo)
+	      FOREIGN KEY (companhia) 
+				REFERENCES companhia_aerea(codigo)
+);
+
+
+CREATE TABLE atribuido (
+    companhia CHAR(3),   -- chave entidade voo_programado
+    id_voo NUMERIC(8),     
+    data_voo DATE,       --                    
+    aviao CHAR(6),       -- chave associacao aviao
+		-- 
+    CONSTRAINT pk_atribuido  -- relacao m:n => tabela com chaves das entidades (voo_programado e aviao)
+	      PRIMARY KEY (companhia,id_voo,data_voo,aviao),  
+		-- 
+    CONSTRAINT fk_atribuido_voo_programado
+	      FOREIGN KEY (companhia,id_voo,data_voo) 
+				REFERENCES voo_programado(companhia,id_voo,data_voo), 
+		-- 
+    CONSTRAINT fk_atribuido_aviao      
+	      FOREIGN KEY (aviao) REFERENCES aviao(tail_number)
 );
