@@ -1,12 +1,58 @@
+
+-- 
+
+DROP TABLE IF EXISTS bilhete;
+DROP TABLE IF EXISTS frequent_flyer;
+DROP TABLE IF EXISTS passageiro;
+DROP TABLE IF EXISTS preco;
+DROP TABLE IF EXISTS lugar;
+DROP TABLE IF EXISTS classe;
+DROP TABLE IF EXISTS atribuido;
+DROP TABLE IF EXISTS aviao;
+DROP TABLE IF EXISTS co_piloto;
+DROP TABLE IF EXISTS auxilia;
+DROP TABLE IF EXISTS pertence;
+DROP TABLE IF EXISTS voo_programado;
+DROP TABLE IF EXISTS voo;
+DROP TABLE IF EXISTS habilitar;
+DROP TABLE IF EXISTS ligacao_entre_aeroportos;
+DROP TABLE IF EXISTS modelos_que_podem_albergar;
+DROP TABLE IF EXISTS aeroporto;
+DROP TABLE IF EXISTS modelo_de_aviao;
+DROP TABLE IF EXISTS ter;
+DROP TABLE IF EXISTS especialidade;
+DROP TABLE IF EXISTS padrinho_voo;
+DROP TABLE IF EXISTS tecnico;
+DROP TABLE IF EXISTS comissario_de_bordo;
+DROP TABLE IF EXISTS piloto;
+DROP TABLE IF EXISTS trabalhar;
+DROP TABLE IF EXISTS trabalhador;
+DROP TABLE IF EXISTS companhia_aerea;
+DROP TABLE IF EXISTS cidade;
+DROP TABLE IF EXISTS pais;
+
 CREATE TABLE pais(
-    codigo VARCHAR(5),
-    nome VARCHAR(60),
+	codigo VARCHAR(5),
+  nome VARCHAR(60) NOT NULL, -- país é entidade forte de cidade
 --
-    CONSTRAINT pk_pais
-		PRIMARY KEY(codigo),
+  CONSTRAINT pk_pais
+			PRIMARY KEY(codigo),
 --
 	CONSTRAINT un_pais_nome
-		UNIQUE(nome)
+			UNIQUE(nome)
+);
+
+CREATE TABLE cidade (
+    codigo VARCHAR(5),
+    nome VARCHAR(60) NOT NULL,
+    codigo_pais VARCHAR(5) NOT NULL, -- cidade é entidade fraca de país
+--
+		CONSTRAINT pk_cidade
+		    PRIMARY KEY (codigo_pais, codigo),
+--
+		CONSTRAINT fk_codigo_pais
+		    FOREIGN KEY (codigo_pais) 
+				REFERENCES pais(codigo) ON DELETE CASCADE
 );
 
 CREATE TABLE companhia_aerea(
@@ -14,58 +60,61 @@ CREATE TABLE companhia_aerea(
 	nome VARCHAR(50) NOT NULL,
 	pais VARCHAR(30) NOT NULL, 
 	valor_por_milha DECIMAL(7,2),
-	bonus_jules_verne DECIMAL(5,2), 
+	bonus_jules_verne DECIMAL(5,4), 
 --
 	CONSTRAINT pk_companhia_aerea 
-		PRIMARY KEY (codigo),
+			PRIMARY KEY (codigo),
 --
 	CONSTRAINT fk_companhia_pais
-		FOREIGN KEY (pais) 
-        REFERENCES pais(codigo),
+			FOREIGN KEY (pais) 
+      REFERENCES pais(codigo),
 --
-    CONSTRAINT un_companhia_nome
-		UNIQUE(nome) -- chave candidata: NOT NULL e UNIQUE
+	CONSTRAINT un_companhia_nome
+			UNIQUE(nome), -- chave candidata: NOT NULL e UNIQUE,
+--
+	CONSTRAINT ck_bonus
+			CHECK(bonus_jules_verne < 1)
 );
 
-
 CREATE TABLE trabalhador(
-	id VARCHAR(10),
+		id VARCHAR(10),
     inicio_atividade YEAR, -- ano que o trabalhador deu inicio da sua atividade
-	nome VARCHAR(50) NOT NULL,
+		nome VARCHAR(50) NOT NULL,
     nif NUMERIC(9) NOT NULL, 
     data_nascimento DATE NOT NULL,
     genero VARCHAR(20),
-    CONSTRAINT pk_trabalhador 
-		PRIMARY KEY (id, inicio_atividade),
 --
-	CONSTRAINT un_id
-		UNIQUE (id), -- tornar o id unico na chave composta
+    CONSTRAINT pk_trabalhador 
+				PRIMARY KEY (id, inicio_atividade),
+--
+		CONSTRAINT un_id
+				UNIQUE (id), -- tornar o id unico na chave composta
 --
     CONSTRAINT un_nif
-		UNIQUE (nif) -- chave candidata: NOT NULL e UNIQUE
+				UNIQUE (nif) -- chave candidata: NOT NULL e UNIQUE
 );
 
 
 CREATE TABLE trabalhar(
-	companhia CHAR(3), -- codigo de 3 letras da companhia aerea
-	trabalhador VARCHAR(10),-- id do trabalhador
-	trabalhador_inicio_atividade YEAR, 
-	ano_entrada YEAR,
-	ano_saida YEAR, -- pode ser NOT NULL se o trabalhador ainda nao fechou um ciclo na companhia
+		companhia CHAR(3), -- codigo de 3 letras da companhia aerea
+		trabalhador VARCHAR(10),-- id do trabalhador
+		trabalhador_inicio_atividade YEAR, 
+		ano_entrada YEAR,
+		ano_saida YEAR, -- pode ser NOT NULL se o trabalhador ainda nao fechou um ciclo na companhia
 --
-	CONSTRAINT pk_trabalhar 
-		PRIMARY KEY (companhia, trabalhador, ano_entrada), -- chave primaria composta
+		CONSTRAINT pk_trabalhar 
+				PRIMARY KEY (companhia, trabalhador, ano_entrada), -- chave primaria composta
 --
-	CONSTRAINT fk_trabalhar_companhia 
-		FOREIGN KEY (companhia) 
-		REFERENCES companhia_aerea(codigo),
+		CONSTRAINT fk_trabalhar_companhia 
+				FOREIGN KEY (companhia) 
+				REFERENCES companhia_aerea(codigo),
 --
-	CONSTRAINT fk_trabalhar_trabalhador_inicio_atividade
-		FOREIGN KEY (trabalhador, trabalhador_inicio_atividade) 
-		REFERENCES trabalhador(id,inicio_atividade),
+		CONSTRAINT fk_trabalhar_trabalhador_inicio_atividade
+				FOREIGN KEY (trabalhador, trabalhador_inicio_atividade) 
+				REFERENCES trabalhador(id,inicio_atividade),
 --
-	CONSTRAINT ck_datas
-		CHECK (ano_entrada >= trabalhador_inicio_atividade)
+		CONSTRAINT ck_datas
+				CHECK (ano_entrada >= trabalhador_inicio_atividade)
 );
 
 
@@ -73,10 +122,10 @@ CREATE TABLE trabalhar(
 CREATE TABLE piloto(
 		trabalhador VARCHAR(10),
 		inicio_atividade YEAR, -- id do trabalhador que e piloto
-		--
+--
 		CONSTRAINT pk_piloto 
 				PRIMARY KEY (trabalhador, inicio_atividade),
-		--
+--
 		CONSTRAINT fk_piloto_inicio_atividade
 				FOREIGN KEY (trabalhador, inicio_atividade)
         REFERENCES trabalhador(id, inicio_atividade)
@@ -87,10 +136,10 @@ CREATE TABLE piloto(
 CREATE TABLE comissario_de_bordo(
 		trabalhador VARCHAR(10), -- id do trabalhador que e comissario de bordo
 		inicio_atividade YEAR,
-		--
+--
 		CONSTRAINT pk_comissario
 				PRIMARY KEY (trabalhador,inicio_atividade),
-		--
+--
 		CONSTRAINT fk_comissario_inicio_atividade
 				FOREIGN KEY (trabalhador, inicio_atividade)
         REFERENCES trabalhador(id, inicio_atividade)
@@ -101,10 +150,10 @@ CREATE TABLE comissario_de_bordo(
 CREATE TABLE tecnico(
 		trabalhador VARCHAR(10), -- id do trabalhador que e tecnico
 		inicio_atividade YEAR,
-		--
+--
 		CONSTRAINT pk_tecnico
 				PRIMARY KEY (trabalhador,inicio_atividade),
-		--
+--
 		CONSTRAINT fk_tecnico_inicio_atividade
 				FOREIGN KEY (trabalhador, inicio_atividade)
         REFERENCES trabalhador(id, inicio_atividade)
@@ -118,21 +167,21 @@ CREATE TABLE padrinho_voo(
 		padrinho VARCHAR(10),
 		padrinho_inicio_atividade YEAR,
 		data_apadrinhamento DATE, -- data que um piloto ganhou um padrinho de voo
-		--
+--
 		CONSTRAINT pk_padrinho_voo 
 				PRIMARY KEY (afilhado, afilhado_inicio_atividade, padrinho, padrinho_inicio_atividade),
-		--
+--
 		CONSTRAINT fk_afilhado
 				FOREIGN KEY (afilhado, afilhado_inicio_atividade) 
 				REFERENCES piloto(trabalhador, inicio_atividade),
-		--
+--
 		CONSTRAINT fk_padrinho 
 				FOREIGN KEY (padrinho, padrinho_inicio_atividade) 
 				REFERENCES piloto(trabalhador, inicio_atividade),
-		--
+--
 		CONSTRAINT ck_padrinho_afilhado
 				CHECK (afilhado != padrinho), -- RIA: um piloto nao pode ser padrinho de si mesmo
-		--
+--
 		CONSTRAINT ck_datas_padrinho_afilhado -- RIA: o inicio de atividade do padrinho deve ser inferior ao do afilhado
 				CHECK (padrinho_inicio_atividade < afilhado_inicio_atividade) 
 );
@@ -140,7 +189,7 @@ CREATE TABLE padrinho_voo(
 
 CREATE TABLE especialidade(
 		nome VARCHAR(50),
-    --
+--
 		CONSTRAINT pk_especialidade
 				PRIMARY KEY (nome)
 );
@@ -150,30 +199,19 @@ CREATE TABLE ter(
 		tecnico VARCHAR(10),
 		tecnico_inicio_atividade YEAR,
     especialidade VARCHAR(50),
-    --
+--
     CONSTRAINT pk_ter
 				PRIMARY KEY (tecnico, tecnico_inicio_atividade, especialidade),
-		--
+--
 		CONSTRAINT fk_ter_tecnico
 				FOREIGN KEY (tecnico, tecnico_inicio_atividade)
 				REFERENCES tecnico(trabalhador, inicio_atividade),
-		--
+--
 		CONSTRAINT fk_ter_especialidade
 				FOREIGN KEY (especialidade)
         REFERENCES especialidade(nome)
 );
-CREATE TABLE cidade (
-    codigo VARCHAR(5),
-    nome VARCHAR(60) NOT NULL,
-    codigo_pais VARCHAR(5) NOT NULL, -- cidade é entidade fraca de país
-		--
-		CONSTRAINT pk_cidade
-		    PRIMARY KEY (codigo_pais, codigo),
-		--
-		CONSTRAINT fk_codigo_pais
-		    FOREIGN KEY (codigo_pais) 
-				REFERENCES pais(codigo) ON DELETE CASCADE
-);
+
 
 
 CREATE TABLE modelo_de_aviao (
@@ -182,16 +220,16 @@ CREATE TABLE modelo_de_aviao (
     maximo_lugares SMALLINT NOT NULL, -- máximo de lugares vai determinar o nº de bilhetes que podem ser vendidos para o voo em questão
     comissarios_de_bordo SMALLINT NOT NULL, -- determina o nº de comissários na tripulação
     horas_minimas_para_comandar SMALLINT NOT NULL, -- horas mínimas exigidas para o piloto ser comandante
-		--
+--
 		CONSTRAINT pk_modelo_de_aviao
 				PRIMARY KEY (modelo),
-		--
+--
 		CONSTRAINT ck_modelo_de_aviao_maximo_lugares
 				CHECK (maximo_lugares > 0),
-		--
+--
 		CONSTRAINT ck_comissarios_de_bordo
 				CHECK (comissarios_de_bordo > 0),
-		--
+--
 		CONSTRAINT ck_horas_minimas_para_comandar
 				CHECK (horas_minimas_para_comandar > 0)
 );
@@ -208,19 +246,19 @@ CREATE TABLE aeroporto(
 		pais VARCHAR(5) NOT NULL,
 		cidade VARCHAR(5) NOT NULL,
 		
-		--
+--
 		CONSTRAINT pk_aeroporto
 		    PRIMARY KEY (codigo),
-		--
+--
 		CONSTRAINT fk_aeroporto_pais_cidade
 			FOREIGN KEY (pais,cidade) 
 			REFERENCES cidade(codigo_pais, codigo) 
 			ON DELETE CASCADE,
-		--
+--
 		CONSTRAINT un_aeroporto_nome
 			UNIQUE (nome),
-		--
-		CONSTRAINT un_aeroporto_coordenadas
+--
+		CONSTRAINT un_aeroporto_coordenadas -- o valor  composto de latitude e longitude tem de ser única
 			UNIQUE(latitude, longitude)
 );
 
@@ -228,19 +266,19 @@ CREATE TABLE aeroporto(
 CREATE TABLE modelos_que_podem_albergar(  
 		aeroporto VARCHAR(10) NOT NULL,
 		modelo_de_aviao CHAR(3) NOT NULL,
-		--
+--
 		CONSTRAINT pk_modelos_que_podem_albergar
-			PRIMARY KEY (aeroporto,modelo_de_aviao), 
-		--
+				PRIMARY KEY (aeroporto,modelo_de_aviao), 
+--
 		CONSTRAINT fk_albergar_aeroporto
-			FOREIGN KEY (aeroporto) 
-			REFERENCES aeroporto(codigo) 
-			ON DELETE CASCADE,
-		--
+				FOREIGN KEY (aeroporto) 
+				REFERENCES aeroporto(codigo) 
+				ON DELETE CASCADE,
+--
 		CONSTRAINT fk_albergar_modelo
-			FOREIGN KEY (modelo_de_aviao) 
-			REFERENCES modelo_de_aviao(modelo) 
-			ON DELETE CASCADE
+				FOREIGN KEY (modelo_de_aviao) 
+				REFERENCES modelo_de_aviao(modelo) 
+				ON DELETE CASCADE
 );
 
 
@@ -248,22 +286,22 @@ CREATE TABLE ligacao_entre_aeroportos(
 		aeroporto1_codigo VARCHAR(10) NOT NULL,
 		aeroporto2_codigo VARCHAR(10) NOT NULL,
 		milhas INT NOT NULL,
-		--
+--
 		CONSTRAINT pk_ligacao_entre_aeroportos -- esta restrição faz com que não seja possível ligar um aeroporto a si mesmo
-			PRIMARY KEY (aeroporto1_codigo, aeroporto2_codigo),
-		--
+				PRIMARY KEY (aeroporto1_codigo, aeroporto2_codigo),
+--
 		CONSTRAINT fk_ligacao_aeroporto1
-			FOREIGN KEY (aeroporto1_codigo) 
-			REFERENCES aeroporto(codigo) 
-			ON DELETE CASCADE,
-		--
+				FOREIGN KEY (aeroporto1_codigo) 
+				REFERENCES aeroporto(codigo) 
+				ON DELETE CASCADE,
+--
 		CONSTRAINT fk_ligacao_aeroporto2
-			FOREIGN KEY (aeroporto2_codigo) 
-			REFERENCES aeroporto(codigo) 
-			ON DELETE CASCADE,
-		--
+				FOREIGN KEY (aeroporto2_codigo) 
+				REFERENCES aeroporto(codigo) 
+				ON DELETE CASCADE,
+--
 		CONSTRAINT ck_ligacao_milhas
-			CHECK (milhas > 0)
+				CHECK (milhas > 0)
 );
 
 
@@ -273,284 +311,18 @@ CREATE TABLE habilitar(
 		id_piloto VARCHAR(10) NOT NULL,
 		modelo_habilitado CHAR(3) NOT NULL,
 		data_de_habilitacao DATE NOT NULL,
-		--
+--
 		CONSTRAINT pk_habilitar
-			PRIMARY KEY (id_piloto,modelo_habilitado),
-		--
+				PRIMARY KEY (id_piloto,modelo_habilitado),
+--
 		CONSTRAINT fk_habilitar_piloto
-			FOREIGN KEY (id_piloto) 
-			REFERENCES trabalhador(id) 
-			ON DELETE CASCADE,
-		--
+				FOREIGN KEY (id_piloto) 
+				REFERENCES trabalhador(id) 
+				ON DELETE CASCADE,
+--
 		CONSTRAINT fk_habilitar_modelo
-			FOREIGN KEY(modelo_habilitado) 
-			REFERENCES modelo_de_aviao(modelo) 
-			ON DELETE CASCADE
-);
-CREATE TABLE voo (
-    companhia CHAR(3),        -- chave entidade forte (companhia aeria)
-    id_voo NUMERIC(8),        -- chave entidade fraca (voo)
-    aeroporto_part  VARCHAR(8) NOT NULL, 
-    aeroporto_cheg  VARCHAR(8) NOT NULL, 
-    hora_prev_part TIME NOT NULL,
-    hora_prev_cheg TIME NOT NULL,
-		-- 
-    CONSTRAINT pk_voo
-	      PRIMARY KEY (companhia,id_voo),  -- chave da entidade forte  mais chave  parcial
-		-- 
-    CONSTRAINT fk_voo_companhia        -- ENTIDADE FRACA
-	      FOREIGN KEY (companhia)        -- remoção de uma companhia
-	      REFERENCES companhia_aerea(codigo)
-          ON DELETE CASCADE ,   -- apaga automaticamente os seus voos.
-	      
-		-- 
-    CONSTRAINT fk_voo_parte_aeroporto -- aeroporto do qual o voo parte
-	      FOREIGN KEY (aeroporto_part) 
-				REFERENCES aeroporto (codigo),
-		-- 
-    CONSTRAINT fk_voo_chega_aeroporto -- aeroporto no qual o voo chega
-	      FOREIGN KEY (aeroporto_cheg) 
-				REFERENCES aeroporto (codigo)
+				FOREIGN KEY(modelo_habilitado) 
+				REFERENCES modelo_de_aviao(modelo) 
+				ON DELETE CASCADE
 );
 
-
-CREATE TABLE voo_programado (
-    companhia CHAR(3),     -- chave entidade forte (companhia aerea)
-    id_voo NUMERIC(8),     -- chave entidade forte (voo)
-    data_voo DATE,         -- chave entidade fraca (voo_programado)
-    cancelado BOOLEAN NOT NULL,
-    hora_real_part DATETIME,  -- caso o voo ainda nao tenha sido cancelado as horas reais 
-    hora_real_cheg DATETIME,  -- são NULL até obtermos esta nova informacao
-    comandante VARCHAR(10) NOT NULL,
-    comandante_inicio_atividade YEAR,
-		-- 
-    CONSTRAINT pk_voo_programado
-	      PRIMARY KEY (companhia,id_voo,data_voo),  -- chave das entidades fortes  mais chave  parcial
-		-- 
-    CONSTRAINT fk_voo_prog_voo          -- ENTIDADE FRACA
-	      FOREIGN KEY (companhia,id_voo)  -- remoção de um voo
-	      REFERENCES voo(companhia,id_voo)          -- apaga automaticamente os seus 
-	      ON DELETE CASCADE,              -- voos programados.
-		-- 
-    CONSTRAINT fk_comandante  -- comandante do voo é unico
-	      FOREIGN KEY (comandante,comandante_inicio_atividade) 
-				REFERENCES piloto(trabalhador,inicio_atividade)
- );
-
-
-CREATE TABLE pertence (
-    companhia CHAR(3),             -- chave entidade voo_programado
-		id_voo NUMERIC(8),     
-    data_voo DATE,                 --           
-    especialidade VARCHAR(50),     -- chave associacao ter
-    tecnico VARCHAR(10),
-	  tecnico_inicio_atividade YEAR, -- 
-		-- 
-    CONSTRAINT pk_pertence  -- relacao m:n => tabela com chaves das entidades (voo_programado e ter)
-	      PRIMARY KEY (companhia,id_voo,data_voo,tecnico,tecnico_inicio_atividade,especialidade),  
-		-- 
-    CONSTRAINT fk_pertence_voo_programado
-	      FOREIGN KEY (companhia,id_voo,data_voo) 
-				REFERENCES voo_programado(companhia,id_voo,data_voo), 
-		-- 
-    CONSTRAINT fk_pertence_ter      
-	      FOREIGN KEY (tecnico, tecnico_inicio_atividade, especialidade) 
-				REFERENCES ter(tecnico, tecnico_inicio_atividade, especialidade)
-);
-
-
-CREATE TABLE auxilia (
-    companhia CHAR(3),       -- chave entidade voo_programado
-    id_voo NUMERIC(8),     
-    data_voo DATE,                            
-    comissario VARCHAR(10),  -- chave associacao comissario_de_bordo
-    comissario_inicio_atividade YEAR,
-		-- 
-    CONSTRAINT pk_auxilia  -- relacao m:n => tabela com chaves das entidades (voo_programado e comissario_de_bordo)
-	      PRIMARY KEY (companhia,id_voo,data_voo,comissario,comissario_inicio_atividade),  
-		-- 
-    CONSTRAINT fk_auxilia_voo_programado
-	      FOREIGN KEY (companhia,id_voo,data_voo) 
-				REFERENCES voo_programado(companhia,id_voo,data_voo), 
-		-- 
-    CONSTRAINT fk_auxilia_comissario      
-	      FOREIGN KEY (comissario,comissario_inicio_atividade) 
-				REFERENCES comissario_de_bordo(trabalhador,inicio_atividade)
-);
-
-
-CREATE TABLE co_piloto (
-    companhia CHAR(3),   -- chave entidade voo_programado
-    id_voo NUMERIC(8),     
-    data_voo DATE,       --                   
-    piloto VARCHAR(10),  -- chave associacao piloto
-    piloto_inicio_atividade YEAR,
-		-- 
-    CONSTRAINT pk_co_piloto  -- relacao m:n => tabela com chaves das entidades (voo_programado e piloto)
-	      PRIMARY KEY (companhia,id_voo,data_voo,piloto,piloto_inicio_atividade),  
-		-- 
-    CONSTRAINT fk_co_piloto_voo_programado
-	      FOREIGN KEY (companhia,id_voo,data_voo) 
-				REFERENCES voo_programado(companhia,id_voo,data_voo), 
-		-- 
-    CONSTRAINT fk_co_piloto_piloto      
-	      FOREIGN KEY (piloto,piloto_inicio_atividade) 
-				REFERENCES piloto(trabalhador,inicio_atividade)
-);
-
-
-CREATE TABLE aviao (
-    tail_number CHAR(6),         -- chave primaria
-    ano_fabrico YEAR NOT NULL,
-    modelo CHAR(3) NOT NULL,     -- chave do modelo de aviao (um só modelo)
-    companhia CHAR(3) NOT NULL,  -- chave companhia (pertence a uma só companhia)
-		-- 
-    CONSTRAINT pk_aviao
-	      PRIMARY KEY (tail_number),  
-		-- 
-    CONSTRAINT fk_aviao_modelo   -- carecterizacao do aviao
-	      FOREIGN KEY (modelo) 
-				REFERENCES modelo_de_aviao(modelo), 
-		-- 
-    CONSTRAINT fk_aviao_companhia -- companhia da qual o aviao pertence
-	      FOREIGN KEY (companhia) 
-				REFERENCES companhia_aerea(codigo)
-);
-
-
-CREATE TABLE atribuido (
-    companhia CHAR(3),   -- chave entidade voo_programado
-    id_voo NUMERIC(8),     
-    data_voo DATE,       --                    
-    aviao CHAR(6),       -- chave associacao aviao
-		-- 
-    CONSTRAINT pk_atribuido  -- relacao m:n => tabela com chaves das entidades (voo_programado e aviao)
-	      PRIMARY KEY (companhia,id_voo,data_voo,aviao),  
-		-- 
-    CONSTRAINT fk_atribuido_voo_programado
-	      FOREIGN KEY (companhia,id_voo,data_voo) 
-				REFERENCES voo_programado(companhia,id_voo,data_voo), 
-		-- 
-    CONSTRAINT fk_atribuido_aviao      
-	      FOREIGN KEY (aviao) REFERENCES aviao(tail_number)
-);
---
-CREATE INDEX idx_voo_programado					-- permite um mais facil acesso às chaves da entidade
-ON voo_programado (companhia, data_voo, id_voo);  -- fraca voo_programado que depende de outras 2 entidades
---
-CREATE TABLE classe(     		-- Entidade fraca:
-	aviao CHAR(6),
-    nome CHAR(2),
---
-	CONSTRAINT pk_classe
-		PRIMARY KEY (aviao,nome),   -- Chave da entidade forte + chave parcial
---
-	CONSTRAINT fk_classe_aviao
-		FOREIGN KEY (aviao) 
-        REFERENCES aviao (tail_number)  -- Remoção de um avião
-        ON DELETE CASCADE				-- apaga automaticamente as suas classes.
-);
-
-CREATE TABLE lugar (			-- Entidade fraca:
-	aviao CHAR(6), 
-    classe CHAR(2),
-	fila CHAR(1),
-	numero SMALLINT,
---
-	CONSTRAINT pk_lugar_pk
-		PRIMARY KEY (aviao,classe,fila,numero),		-- Chave da entidade forte + chaves parciais
---
-	CONSTRAINT fk_lugar_classe
-		FOREIGN KEY (aviao,classe) 			
-		REFERENCES classe(aviao,nome) 		-- Remoção de uma classe
-        ON DELETE CASCADE					-- apaga automaticamente os seus lugares
-);
-CREATE TABLE preco (
-	aviao_classe CHAR(6),    -- necessário todas as chaves das entidades fracas 
-	nome_classe CHAR(2),     -- classe e voo_programado
-    data_voo_programado DATE,
-    id_voo_programado NUMERIC(8),
-    companhia_voo_programado CHAR(3),
-    valor NUMERIC(6,2) NOT NULL,
---
-	CONSTRAINT pk_preco
-		PRIMARY KEY (aviao_classe,nome_classe, data_voo_programado,
-        id_voo_programado, companhia_voo_programado),
---
-	CONSTRAINT fk_preco_classe
-		FOREIGN KEY (aviao_classe,nome_classe) REFERENCES classe (aviao,nome),
---
-	CONSTRAINT preco_voo_programado
-		FOREIGN KEY (companhia_voo_programado,data_voo_programado,id_voo_programado) 
-		REFERENCES voo_programado (companhia,data_voo,id_voo),
---	
-	CONSTRAINT 
-		CHECK (valor > 0.0)
-);
-CREATE TABLE passageiro (
-	nic NUMERIC(9) , 
-	email VARCHAR(30) NOT NULL,
-	telemovel VARCHAR(20) NOT NULL,
-    nome VARCHAR(20) NOT NULL,
-    nif NUMERIC(9),
---
-	CONSTRAINT pk_passageiro
-		PRIMARY KEY (nic),
---
-	CONSTRAINT un_passageiro_telemovel
-		UNIQUE (telemovel),          -- chave candidata : N0T NULL + UNIQUE
---
-	CONSTRAINT un_passageiro_email
-		UNIQUE (email)        -- chave candidata: NOT NULL + UNIQUE
-);
-
-CREATE TABLE frequent_flyer (
-	companhia CHAR(3),
-	passageiro NUMERIC(9),
-    tipo_de_cliente CHAR(20) NOT NULL, 
--- 
-	CONSTRAINT pk_frequent_flyer
-		PRIMARY KEY (companhia,passageiro),
---
-	CONSTRAINT fk_frequent_flyer_passageiro
-		FOREIGN KEY (passageiro) REFERENCES passageiro(nic),
---
-	CONSTRAINT fk_frequent_flyer_companhia
-    FOREIGN KEY (companhia) REFERENCES companhia_aerea(codigo),    
---
-	CONSTRAINT ck_frequent_flyer_tipo_de_cliente
-		CHECK (tipo_de_cliente IN ('classic','special')) 
-);
-
-CREATE TABLE bilhete (
-    data_voo_programado DATE,   		-- chaves das entidades fracas
-    id_voo_programado NUMERIC(8),		-- lugar e voo_programado
-    companhia_voo_programado CHAR(3),
-    classe_lugar CHAR(2),
-    aviao_lugar CHAR(6),
-    fila_lugar CHAR(1),
-    numero_lugar SMALLINT,
-    passageiro NUMERIC(9),
---
-	CONSTRAINT pk_bilhete
-    PRIMARY KEY(id_voo_programado, companhia_voo_programado,                                           
-    data_voo_programado,classe_lugar, aviao_lugar, fila_lugar, numero_lugar),
---
-	CONSTRAINT fk_bilhete_lugar
-    FOREIGN KEY (aviao_lugar,classe_lugar,fila_lugar,numero_lugar) 
-    REFERENCES lugar(aviao,classe,fila,numero),
---
-	CONSTRAINT fk_bilhete_voo_programado
-		FOREIGN KEY (companhia_voo_programado,data_voo_programado,id_voo_programado)
-    REFERENCES voo_programado (companhia,data_voo,id_voo),
---
-	CONSTRAINT fk_bilhete_passageiro		-- restrição de chave,
-		FOREIGN KEY(passageiro) 			-- relação 1:n => bilhete só será
-    REFERENCES passageiro(nic)			-- comprado por 1 passageiro.
-);
-
--- RIAs:
--- RIAs 8 e 9 do EA não cobertas pelo SQL.
--- RIA 8: Cada passageiro só se pode inscrever no maximo em 5 companhias aéreas
--- RIA 9: tipo_de_cliente = special sse o seu número de milhas >= 70 000.
---
