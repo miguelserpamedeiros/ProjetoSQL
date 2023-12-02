@@ -30,3 +30,16 @@ SELECT pe.nome, pi1.carta, pe.pais, v1.origem, COUNT(*)
                             GROUP BY pi2.carta, v2.origem);
 
 
+
+
+
+
+SELECT DISTINCT pe.nome, pe.pais, pe.ano
+  FROM pessoa pe
+  LEFT OUTER JOIN viaja vi ON (pe.nic = vi.pessoa)
+  WHERE pe.pais IN ('EE','LT','LV')
+  AND pe.ano < '1951'
+  GROUP BY(pe.nic)
+  HAVING COUNT(pe.nic) <= 4;
+
+
