@@ -12,3 +12,21 @@ SELECT pe.nic, pe.nome, pe.pais
 			AND EXISTS (SELECT *
                         FROM piloto pi2
                         WHERE pi1.nic = pi2.padrinho));
+
+
+
+SELECT pe.nome, pi1.carta, pe.pais, v1.origem, COUNT(*)
+	FROM piloto pi1, pessoa pe, voo v1
+    WHERE pe.nic = pi1.nic
+    AND pi1.nic = v1.comandante
+    AND v1.tipo = 'T'
+    GROUP BY pi1.carta ,v1.origem
+    HAVING COUNT(pi1.nic) >=  ALL
+							(SELECT COUNT(pi2.nic)
+                            FROM piloto pi2, voo v2
+                            WHERE pi2.nic = v2.comandante
+                            AND v1.origem = v2.origem
+                            AND v2.tipo = 'T'
+                            GROUP BY pi2.carta, v2.origem);
+
+
