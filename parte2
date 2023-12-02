@@ -1,0 +1,14 @@
+SELECT pe.nic, pe.nome, pe.pais
+	FROM pessoa pe, viaja vi, voo
+	WHERE pe.nic = vi.pessoa
+	AND voo.codigo = vi.voo
+    AND voo.tipo = 'T'
+    AND voo.duracao > 300
+    AND pe.pais NOT IN 
+    (SELECT pe1.pais
+		FROM pessoa pe1, piloto pi1
+        WHERE pe1.nic = pi1.nic
+			AND (pi1.nic = voo.comandante OR pi1.nic = voo.co_piloto)
+			AND EXISTS (SELECT *
+                        FROM piloto pi2
+                        WHERE pi1.nic = pi2.padrinho));
