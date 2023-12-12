@@ -1,0 +1,58 @@
+INSERT INTO aeroporto(sigla,nome,cidade,pais) VALUES
+	('AA','aaaaaa','aaaaaa','AA'),
+    ('BB','bbbbbb','bbbbbb','BB'),
+    ('CC','cccccc','cccccc','CC'),
+    ('DD','dddddd','dddddd','DD'),
+    ('EE','eeeeee','eeeeee','EE'),
+    ('FF','ffffff','ffffff','FF');
+
+INSERT INTO pessoa(nic,nif,nome,genero,ano,pais) VALUES
+	(1,1,'abc','m','1947','EE'), -- piloto
+    (2,2,'bcd','f','1932','LV'), -- piloto
+    (3,3,'cde','m','1951','LT'),
+    (4,4,'fgh','f','1947','LV'),
+    (5,5,'ijk','m','1943','EE'), -- piloto
+    (6,6,'lmn','f','1935','LV'),
+    (7,7,'opq','m','1922','LT'),
+    (8,8,'rst','f','1992','EE'), -- 9)nao aparece pq da data
+    (9,9,'wxyz','m','1925','XX'),-- 9) nao aparece pq do pais --piloto
+	(10,10,'lol','f','1976','QQ'),
+    (11,11,'lmfao','m','1973','UU'), -- piloto
+    (12,12,'balada','f','1890','II'), -- piloto
+    (13,13,'brassado','m','1990','PP'); -- piloto
+INSERT INTO piloto(nic,carta,ano,padrinho) VALUES 
+	(1,01,'1977',NULL),
+    (2,02,'1980',1),
+    (13,013,'2000',2), -- não deverá aparecer na solucao
+    (11,011,'1980',2),
+    (12,012,'1970',1),
+    (9,09,'1990',13),
+    (5,05,'1975',NULL);
+    
+INSERT INTO voo(codigo,data,duracao,tipo,origem,destino,comandante,co_piloto) VALUES 
+	(100,'09-08-1998',305,'T','AA','BB',2,1), -- 3) piloto 1 tem afilhados de voo
+    (101,'27-10-1989',400,'T','BB','AA',1,2), -- 3) piloto 1 tem afilhados de voo
+    (102,'17-12-1978',370,'T','CC','AA',13,1), -- 3) ambos com afilhados de voo
+    (103,'1-1-2001',380,'T','AA','CC',2,13), --  7) comandante 2 com 2 voos no AA
+    (104,'2-2-1998',200,'T','AA','DD',13,5), -- 7) comandante 13 com 2 voos no AA
+    (105,'3-3-1997',390,'C','BB','AA',1,5), --  7) comandante 1 com 2 voos no BB
+    (106,'4-4-1998',500,'P','AA','EE',5,9),
+    (107,'5-5-1995',120,'T','AA','BB',5,12), -- 7) comandante 5 com 2 voos no AA
+    (108,'6-6-1993',301,'T','DD','EE',5,1), --  3) nenhum tem afilhados de voo
+    (109,'7-7-1992',340,'P','EE','FF',9,11),
+    (110,'8-8-1993',100,'T','FF','EE',11,9);
+
+INSERT INTO classe(nome,descricao) VALUES
+	('executiva','bim boa'),
+    ('economica','get yo money up');
+
+INSERT INTO viaja(pessoa,voo,classe) VALUES
+	(3,100,'executiva'), -- 3) ambos os paises diferentes do seus pilotos
+    (3,101,'executiva'),
+    (3,102,'executiva'),
+    (10,106,'economica') -- 3) nao é do tipo charter (T)
+    (5,102,'economica'), -- 3) 1 dos pilotos com pais diferente
+    (4,104,'economica'), -- 3) nao tem mais de 5 horas
+    (4,107,'executiva'),
+    (4,105,'economica'),
+    (4,106,'economica'); -- 4 voos, não aparece
