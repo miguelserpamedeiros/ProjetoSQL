@@ -13,43 +13,47 @@ INSERT INTO pessoa(nic,nif,nome,genero,ano,pais) VALUES
     (4,4,'fgh','f','1947','LV'),
     (5,5,'ijk','m','1943','EE'), -- piloto
     (6,6,'lmn','f','1935','LV'),
-    (7,7,'opq','m','1922','LT'),
+    (7,7,'opq','m','1922','EE'),
     (8,8,'rst','f','1992','EE'),
-    (9,9,'wxyz','m','1925','XX'),
+    (9,9,'wxyz','m','1925','EE'),
 	(10,10,'lol','f','1976','QQ'),
     (11,11,'lmfao','m','1973','UU'), -- piloto
     (12,12,'balada','f','1890','II'), -- piloto
     (13,13,'brassado','m','1990','PP'); -- piloto
 INSERT INTO piloto(nic,carta,ano,padrinho) VALUES 
-	(1,01,'1977',NULL),
-    (2,02,'1980',1),
-    (13,013,'2000',2),
-    (11,011,'1980',2),
-    (12,012,'1970',1),
-    (9,09,'1990',13),
-    (5,05,'1975',NULL);
+	(1,01,'1977',NULL), -- tem afilhados
+    (2,02,'1980',1), -- tem afilhados
+    (13,013,'2000',2), -- 1 afilhado
+    (11,011,'1980',2), -- não tem afilhados
+    (12,012,'1970',1), -- não tem afilhados
+    (9,09,'1990',13), -- não tem afilhados
+    (5,05,'1975',NULL); -- não tem afilhados
     
 INSERT INTO voo(codigo,data,duracao,tipo,origem,destino,comandante,co_piloto) VALUES 
 	(100,'09-08-1998',305,'T','AA','BB',2,1), -- + 5 horas, T, ambos com afilhado
     (102,'17-12-1978',370,'T','CC','AA',13,1), -- + 5 horas, T, ambos com afilhado
-    (103,'1-1-2001',380,'T','AA','CC',5,13), -- + 5 horas, T, 1 com afilhado
-    (104,'2-2-1998',200,'T','AA','DD',13,5), -- -5 horas,T
-    (105,'3-3-1997',390,'C','BB','AA',1,5), -- + 5 horas, C
-    (106,'4-4-1998',500,'P','AA','EE',5,9), -- + 5 horas, P
-    (108,'6-6-1993',300,'T','DD','EE',5,1), --  = 5 horas
-    (109,'7-7-1992',340,'T','EE','FF',9,11); -- + 5 horas, T, sem afilhados
+    (103,'1-1-2001',380,'T','AA','CC',5,13), -- + 5 horas, T, co_piloto com afilhado
+    (104,'2-2-1998',200,'T','AA','DD',13,5), -- -5 horas,T (ERROR)
+    (105,'3-3-1997',390,'C','BB','AA',1,5), -- + 5 horas, C (ERROR)
+    (106,'4-4-1998',500,'P','AA','EE',5,9), -- + 5 horas, P (ERROR)
+    (108,'6-6-1993',300,'T','DD','EE',5,1),--  = 5 horas (ERROR)
+    (113,'3-3-1997',390,'T','BB','AA',1,5), -- + 5 horas, T, comandante com afilhado
+    (109,'7-7-1992',340,'T','EE','FF',9,11); -- + 5 horas, T, sem afilhados (ERROR)
 
 INSERT INTO classe(nome,descricao) VALUES
 	('executiva','bim boa'),
     ('economica','get yo money up');
 
 INSERT INTO viaja(pessoa,voo,classe) VALUES
-	(3,100,'executiva'), -- pais != ambos pilotos
-    (3,102,'executiva'), -- pais  != ambos pilotos
-    (10,106,'economica') -- 3) nao é do tipo charter (T)
-    (5,102,'economica'), -- pais != de 1 piloto
-    (4,104,'economica'), -- 3) nao tem mais de 5 horas
-    (4,105,'economica'),
-    (4,106,'economica'), -- 4 voos, não aparece #adicionar paises iguais
-    (7,108,'executiva'),
-    (8,109,'economica');
+    (3,100,'executiva'), -- pais != ambos pilotos
+    (3,102,'executiva'), -- pais != ambos pilotos	
+    (6,102,'executiva'), -- pais  != ambos pilotos
+    (8,113,'economica'), -- pais = ambos os pilotos (ERROR)
+    (5,102,'economica'), -- pais != comandante mas  pais = co_piloto
+    (7,103,'executiva'), -- pais = comandante mas pais != co_pilto
+    (4,104,'economica'), -- ERROR
+    (4,105,'economica'), -- ERROR
+    (4,106,'economica'), -- ERROR
+    (7,108,'executiva'), -- ERROR
+    (8,109,'economica'); -- ERROR
+ -- Resolucao : 3,6,5,7
