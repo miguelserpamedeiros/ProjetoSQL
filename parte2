@@ -4,7 +4,7 @@ SELECT pe.nic, pe.nome, pe.pais
 	AND voo.codigo = vi.voo
     AND voo.tipo = 'T'
     AND voo.duracao > 300
-    AND pe.pais NOT IN 
+    AND pe.pais != ANY # not in para isto
     (SELECT pe1.pais
 		FROM pessoa pe1, piloto pi1
         WHERE pe1.nic = pi1.nic
