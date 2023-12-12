@@ -32,17 +32,17 @@ INSERT INTO piloto(nic,carta,ano,padrinho) VALUES
     
 INSERT INTO voo(codigo,data,duracao,tipo,origem,destino,comandante,co_piloto) VALUES 
 	(100,'09-08-1998',305,'T','AA','BB',2,1), #
-    (101,'27-10-1989',400,'T','BB','AA',1,2), #
+    (101,'27-10-1989',400,'T','BB','AA',1,2), -- 1BB voo do piloto 1
     (102,'17-12-1978',370,'T','CC','AA',13,1), -- 1CC voo do piloto 13
     (103,'1-1-2001',380,'T','AA','CC',2,13), -- 2AA voos do piloto 2
     (104,'2-2-1998',200,'T','EE','DD',13,5), -- 1EE voo do piloto 13
-    (105,'3-3-1997',390,'C','BB','AA',1,5),  -- 2BB voos do piloto 1 (ERROR)
+    (105,'3-3-1997',390,'C','BB','AA',1,5),  -- (ERROR) pq do C
     (106,'4-4-1998',500,'T','AA','EE',5,9), -- #
     (107,'5-5-1995',120,'T','AA','BB',5,12), -- 2AA voos do piloto 5
     (108,'6-6-1993',301,'T','AA','BB',9,1), 
     (1080,'6-6-1990',301,'T','DD','BB',9,2), -- 1DD voo do piloto 9
     (1081,'6-6-1992',301,'T','DD','AA',9,13), -- 2DD voos do piloto 9
     (109,'7-7-1992',340,'T','AA','FF',9,11), -- 2AA voo do piloto 9 
-    (110,'8-8-1993',100,'P','FF','EE',11,9); -- 1FF voo do piloto 11 
+    (110,'8-8-1993',100,'P','FF','EE',11,9); -- (ERROR) pq do P
   
-  -- SOLUCAO: 13,PP,EE / 13,PP,CC / 2 LV AA / 5 EE AA/ 9 XX DD / 9 XX AA 
+  -- SOLUCAO: 13,PP,EE / 13,PP,CC/ 2,LV,AA/ 1,EE,BB/ 5,EE,AA/ 9,XX,DD/ 9,XX,AA
