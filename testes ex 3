@@ -57,3 +57,4 @@ INSERT INTO viaja(pessoa,voo,classe) VALUES
     (7,108,'executiva'), -- ERROR
     (8,109,'economica'); -- ERROR
  -- Resolucao : 3,6,5,7
+k
