@@ -15,7 +15,7 @@ SELECT DISTINCT pe.nic, pe.nome, pe.pais
 
 
 
-SELECT pe.nome, pi1.carta, pe.pais, v1.origem, COUNT(*)
+SELECT pe.nome, pi1.carta, pe.pais, v1.origem, COUNT(*)   # tirar o count
 	FROM piloto pi1, pessoa pe, voo v1
     WHERE pe.nic = pi1.nic
     AND pi1.nic = v1.comandante
