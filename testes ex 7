@@ -1,3 +1,12 @@
+INSERT INTO aeroporto(sigla,nome,cidade,pais) VALUES
+	('AA','aaaaaa','aaaaaa','AA'),
+    ('BB','bbbbbb','bbbbbb','BB'),
+    ('CC','cccccc','cccccc','CC'),
+    ('DD','dddddd','dddddd','DD'),
+    ('EE','eeeeee','eeeeee','EE'),
+    ('FF','ffffff','ffffff','FF');
+
+
 INSERT INTO pessoa(nic,nif,nome,genero,ano,pais) VALUES
 	(1,1,'abc','m','1947','EE'), -- piloto
     (2,2,'bcd','f','1932','LV'), -- piloto
