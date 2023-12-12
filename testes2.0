@@ -30,14 +30,14 @@ INSERT INTO piloto(nic,carta,ano,padrinho) VALUES
     (5,05,'1975',NULL);
     
 INSERT INTO voo(codigo,data,duracao,tipo,origem,destino,comandante,co_piloto) VALUES 
-	(100,'09-08-1998',305,'T','AA','BB',2,1), -- 3) piloto 1 tem afilhados de voo
-    (101,'27-10-1989',400,'T','BB','AA',1,2), -- 3) piloto 1 tem afilhados de voo
-    (102,'17-12-1978',370,'T','CC','AA',13,1), -- 3) ambos com afilhados de voo
-    (103,'1-1-2001',380,'T','AA','CC',2,13), --  7) comandante 2 com 2 voos no AA
-    (104,'2-2-1998',200,'T','AA','DD',13,5), -- 7) comandante 13 com 2 voos no AA
-    (105,'3-3-1997',390,'C','BB','AA',1,5), --  7) comandante 1 com 2 voos no BB
+	(100,'09-08-1998',305,'T','AA','BB',2,1),
+    (101,'27-10-1989',400,'T','BB','AA',1,2),
+    (102,'17-12-1978',370,'T','CC','AA',13,1),
+    (103,'1-1-2001',380,'T','AA','CC',2,13),
+    (104,'2-2-1998',200,'T','AA','DD',13,5),
+    (105,'3-3-1997',390,'C','BB','AA',1,5), 
     (106,'4-4-1998',500,'P','AA','EE',5,9),
-    (107,'5-5-1995',120,'T','AA','BB',5,12), -- 7) comandante 5 com 2 voos no AA
+    (107,'5-5-1995',120,'T','AA','BB',5,12),
     (108,'6-6-1993',301,'T','DD','EE',5,1), --  3) nenhum tem afilhados de voo
     (109,'7-7-1992',340,'P','EE','FF',9,11),
     (110,'8-8-1993',100,'T','FF','EE',11,9);
