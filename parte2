@@ -40,6 +40,6 @@ SELECT DISTINCT pe.nome, pe.pais, pe.ano
   WHERE pe.pais IN ('EE','LT','LV')
   AND pe.ano < '1951'
   GROUP BY(pe.nic)
-  HAVING COUNT(pe.nic) <= 4;
+  HAVING COUNT(pe.nic) < 4;
 
 
