@@ -1,4 +1,4 @@
-SELECT pe.nic, pe.nome, pe.pais
+SELECT DISTINCT pe.nic, pe.nome, pe.pais
 	FROM pessoa pe, viaja vi, voo
 	WHERE pe.nic = vi.pessoa
 	AND voo.codigo = vi.voo
