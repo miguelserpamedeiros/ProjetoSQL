@@ -1,0 +1,39 @@
+INSERT INTO pessoa(nic,nif,nome,genero,ano,pais) VALUES
+	(1,1,'abc','m','1947','EE'), -- piloto
+    (2,2,'bcd','f','1932','LV'), -- piloto
+    (3,3,'cde','m','1951','LT'),
+    (4,4,'fgh','f','1947','LV'),
+    (5,5,'ijk','m','1943','EE'), -- piloto
+    (6,6,'lmn','f','1935','LV'),
+    (7,7,'opq','m','1922','LT'),
+    (8,8,'rst','f','1992','EE'), 
+    (9,9,'wxyz','m','1925','XX'), -- piloto
+	(10,10,'lol','f','1976','QQ'),
+    (11,11,'lmfao','m','1973','UU'), -- piloto
+    (12,12,'balada','f','1890','II'), -- piloto
+    (13,13,'brassado','m','1990','PP'); -- piloto
+INSERT INTO piloto(nic,carta,ano,padrinho) VALUES 
+	(1,01,'1977',NULL),
+    (2,02,'1980',1),
+    (13,013,'2000',2),
+    (11,011,'1980',2),
+    (12,012,'1970',1),
+    (9,09,'1990',13),
+    (5,05,'1975',NULL);
+    
+INSERT INTO voo(codigo,data,duracao,tipo,origem,destino,comandante,co_piloto) VALUES 
+	(100,'09-08-1998',305,'T','AA','BB',2,1), #
+    (101,'27-10-1989',400,'T','BB','AA',1,2), #
+    (102,'17-12-1978',370,'T','CC','AA',13,1), -- 1CC voo do piloto 13
+    (103,'1-1-2001',380,'T','AA','CC',2,13), -- 2AA voos do piloto 2
+    (104,'2-2-1998',200,'T','EE','DD',13,5), -- 1EE voo do piloto 13
+    (105,'3-3-1997',390,'C','BB','AA',1,5),  -- 2BB voos do piloto 1 (ERROR)
+    (106,'4-4-1998',500,'P','AA','EE',5,9), -- 1EE voo do piloto 13 (ERROR)
+    (107,'5-5-1995',120,'T','AA','BB',5,12), -- 2AA voos do piloto 5
+    (108,'6-6-1993',301,'T','AA','BB',9,1), -- ERROR
+    (1080,'6-6-1990',301,'T','DD','BB',9,2),
+    (1081,'6-6-1992',301,'T','DD','AA',9,13), -- 2DD voos do piloto 9
+    (109,'7-7-1992',340,'T','AA','FF',9,11), -- 2AA voo do piloto 9 
+    (110,'8-8-1993',100,'T','FF','EE',11,9); -- 1FF voo do piloto 11 
+  
+  -- SOLUCAO: CC 13 PP/ AA 2 LV / EE 1 EE / AA 5 EE/ DD 9 XX / FF 11 UU
